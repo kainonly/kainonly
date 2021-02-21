@@ -1,0 +1,20 @@
+{
+  "type": "postgres",
+  "host": "",
+  "port": "3306",
+  "username": "root",
+  "password": "",
+  "database": "",
+  "synchronize": false,
+  "logging": [
+    "error",
+    "schema"
+  ],
+  "entityPrefix": "",
+  "entities": [
+    "entity/**/*.ts"
+  ],
+  "migrations": [
+    "migration/**/*.ts"
+  ]
+}

@@ -6,13 +6,21 @@ import { RolePolicyMix } from './role-policy-mix';
 @ViewEntity({
   expression: (connection => connection.createQueryBuilder()
       .select('r.id,r.key,r.name')
-      .addSelect(`json_agg(distinct rrr.resource_key)`, 'resource')
-      .addSelect(`json_agg(distinct concat(rp.acl_key, ':', rp.policy))`, 'acl')
+      .addSelect(
+        `case when count(rrr.resource_key) = 0 then '[]'::json
+         else json_agg(distinct rrr.resource_key) end`,
+        'resource',
+      )
+      .addSelect(
+        `case when count(rpm.acl_key) = 0 then '[]'::json 
+        else json_agg(distinct concat(rpm.acl_key, ':', rpm.policy)) end`,
+        'acl',
+      )
       .addSelect('r.permission,r.note,r.status,r.create_time,r.update_time')
       .from(Role, 'r')
       .leftJoin(RoleResourceRel, 'rrr', 'r.key = rrr.role_key')
       .leftJoin(RolePolicyMix, 'rpm', 'r.key = rpm.role_key')
-      .groupBy('r.id, r.key, r.name, r.permission, r.note, r.status, r.create_time, r.update_time')
+      .groupBy('r.id')
   ),
 })
 export class RoleMix {

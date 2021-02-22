@@ -1,10 +1,11 @@
 {
   "type": "postgres",
-  "host": "",
-  "port": "3306",
+  "host": "localhost",
+  "port": "5432",
   "username": "root",
   "password": "",
   "database": "",
+  "schema": "public",
   "synchronize": false,
   "logging": [
     "error",
@@ -12,9 +13,9 @@
   ],
   "entityPrefix": "",
   "entities": [
-    "entity/**/*.ts"
+    "src/entity/**/*.ts"
   ],
   "migrations": [
-    "migration/**/*.ts"
+    "src/migration/**/*.ts"
   ]
 }

@@ -7,7 +7,7 @@
   "dependencies": {
     "commander": "^7.1.0",
     "hash-wasm": "^4.4.1",
-    "pg": "^8.5.1",
+    "mysql2": "^2.2.5",
     "reflect-metadata": "^0.1.10",
     "typeorm": "^0.2.30"
   },

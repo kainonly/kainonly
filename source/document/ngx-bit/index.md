@@ -1,0 +1,3926 @@
+---
+title: 易用的 Angular 辅助层框架
+toc: true
+---
+
+[![Github Actions](https://img.shields.io/github/workflow/status/kainonly/ngx-bit/test?style=flat-square)](https://github.com/kainonly/ngx-bit/actions)
+[![Coveralls github](https://img.shields.io/coveralls/github/kainonly/ngx-bit.svg?style=flat-square)](https://coveralls.io/github/kainonly/ngx-bit)
+[![npm](https://img.shields.io/npm/v/ngx-bit.svg?style=flat-square)](https://ngx-bit.kainonly.com)
+[![Downloads](https://img.shields.io/npm/dm/ngx-bit.svg?style=flat-square)](https://www.npmjs.com/package/ngx-bit)
+[![npm](https://img.shields.io/npm/dt/ngx-bit.svg?style=flat-square)](https://www.npmjs.com/package/ngx-bit)
+[![TypeScript](https://img.shields.io/badge/%3C%2F%3E-TypeScript-blue.svg?style=flat-square)](https://www.typescriptlang.org/)
+[![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square)](https://raw.githubusercontent.com/kainonly/ngx-bit.js/master/LICENSE)
+
+## 快速开始
+
+初始化案例，创建本地项目 bit-example（仅展示前端必须的正确配置，不启动后端则不能正常加载）
+
+```shell
+ng new bit-example
+
+# ? Would you like to add Angular routing? Yes
+# ? Which stylesheet format would you like to use? SCSS
+```
+
+首先为项目安装组件依赖 ng-zorro-antd （Ant Design 的 Angular 实现）
+
+```shell
+ng add ng-zorro-antd
+
+# ? Enable icon dynamic loading [ Detail: https://ng.ant.design/components/icon/en ] Yes
+# ? Set up custom theme file [ Detail: https://ng.ant.design/docs/customize-theme/en ] No
+# ? Choose your locale code: zh_CN
+# ? Choose template to create project: blank
+```
+
+然后安装辅助框架 ngx-bit
+
+```shell
+ng add ngx-bit
+```
+
+还可以设置为 PWA 项目
+
+```shell
+ng add @angular/pwa
+```
+
+按需安装第三方组件，示例用到 `BitSupportService` `BitSwalService`，以及 `ngx-perfect-scrollbar`
+
+```shell
+npm install @ngx-pwa/local-storage sweetalert2 ngx-perfect-scrollbar -S
+```
+
+配置项目环境，修改文件 `src\environments\environment.ts`
+
+```typescript
+import { en_US, zh_CN } from "ng-zorro-antd";
+import { BitConfig } from "ngx-bit/types";
+
+const bit: BitConfig = {
+  url: {
+    api: "http://localhost:9501",
+    static: "https://cdn.example.com/",
+    icon: "https://cdn.example.com/",
+  },
+  api: {
+    namespace: "/system",
+    withCredentials: true,
+    upload: "/system/main/uploads",
+    uploadStorage: "default",
+    uploadFetchSigned: "<if oss obs cos>",
+    uploadFetchSignedMethod: "<if oss obs cos>",
+    uploadSize: 5120,
+  },
+  curd: {
+    get: "/get",
+    lists: "/lists",
+    originLists: "/originLists",
+    add: "/add",
+    edit: "/edit",
+    status: "/edit",
+    delete: "/delete",
+  },
+  col: {
+    label: {
+      nzXXl: 4,
+      nzXl: 5,
+      nzLg: 6,
+      nzMd: 7,
+      nzSm: 24,
+    },
+    control: {
+      nzXXl: 8,
+      nzXl: 9,
+      nzLg: 10,
+      nzMd: 14,
+      nzSm: 24,
+    },
+    submit: {
+      nzXXl: { span: 8, offset: 4 },
+      nzXl: { span: 9, offset: 5 },
+      nzLg: { span: 10, offset: 6 },
+      nzMd: { span: 14, offset: 6 },
+      nzSm: { span: 24, offset: 0 },
+    },
+  },
+  locale: {
+    default: "zh_cn",
+    mapping: new Map<number, string>([
+      [0, "zh_cn"],
+      [1, "en_us"],
+    ]),
+    bind: new Map<string, any>([
+      ["zh_cn", zh_CN],
+      ["en_us", en_US],
+    ]),
+  },
+  i18n: {
+    default: "zh_cn",
+    contain: ["zh_cn", "en_us"],
+    switch: [
+      {
+        i18n: "zh_cn",
+        name: {
+          zh_cn: "中文",
+          en_us: "Chinese",
+        },
+      },
+      {
+        i18n: "en_us",
+        name: {
+          zh_cn: "英文",
+          en_us: "English",
+        },
+      },
+    ],
+  },
+  page: 20,
+};
+
+export const environment = {
+  production: false,
+  bit,
+};
+```
+
+建立共享模块（可按照需要来定义），创建文件 `src\app\app.ext.module.ts`
+
+```typescript
+import { CUSTOM_ELEMENTS_SCHEMA, NgModule } from "@angular/core";
+import { CommonModule } from "@angular/common";
+import { FormsModule, ReactiveFormsModule } from "@angular/forms";
+import { BitDirectiveModule } from "ngx-bit/directive";
+import { BitExtModule } from "ngx-bit/component";
+import { BitPipeModule } from "ngx-bit/pipe";
+import { NzButtonModule } from "ng-zorro-antd/button";
+import { NzIconModule } from "ng-zorro-antd/icon";
+import { NzGridModule } from "ng-zorro-antd/grid";
+import { NzLayoutModule } from "ng-zorro-antd/layout";
+import { NzSpaceModule } from "ng-zorro-antd/space";
+import { NzMenuModule } from "ng-zorro-antd/menu";
+import { NzInputModule } from "ng-zorro-antd/input";
+import { NzFormModule } from "ng-zorro-antd/form";
+import { NzSelectModule } from "ng-zorro-antd/select";
+import { NzSwitchModule } from "ng-zorro-antd/switch";
+import { NzDrawerModule } from "ng-zorro-antd/drawer";
+import { NzCardModule } from "ng-zorro-antd/card";
+import { NzToolTipModule } from "ng-zorro-antd/tooltip";
+import { NzMessageModule } from "ng-zorro-antd/message";
+import { NzNotificationModule } from "ng-zorro-antd/notification";
+import { NzAutocompleteModule } from "ng-zorro-antd/auto-complete";
+import { NzCheckboxModule } from "ng-zorro-antd/checkbox";
+import { NzDividerModule } from "ng-zorro-antd/divider";
+import { NzAlertModule } from "ng-zorro-antd/alert";
+import { NzBreadCrumbModule } from "ng-zorro-antd/breadcrumb";
+import { NzDropDownModule } from "ng-zorro-antd/dropdown";
+import { NzPageHeaderModule } from "ng-zorro-antd/page-header";
+import { NzRadioModule } from "ng-zorro-antd/radio";
+import { NzResultModule } from "ng-zorro-antd/result";
+import { NzTableModule } from "ng-zorro-antd/table";
+import { NzTagModule } from "ng-zorro-antd/tag";
+import { NzTreeModule } from "ng-zorro-antd/tree";
+import { NzTreeSelectModule } from "ng-zorro-antd/tree-select";
+import { NzUploadModule } from "ng-zorro-antd/upload";
+
+@NgModule({
+  exports: [
+    CommonModule,
+    FormsModule,
+    ReactiveFormsModule,
+    NzButtonModule,
+    NzIconModule,
+    NzGridModule,
+    NzLayoutModule,
+    NzSpaceModule,
+    NzMenuModule,
+    NzFormModule,
+    NzInputModule,
+    NzSelectModule,
+    NzSwitchModule,
+    NzCardModule,
+    NzToolTipModule,
+    NzDrawerModule,
+    NzMessageModule,
+    NzNotificationModule,
+    NzDividerModule,
+    NzAutocompleteModule,
+    NzCheckboxModule,
+    NzPageHeaderModule,
+    NzTableModule,
+    NzMessageModule,
+    NzTreeModule,
+    NzTagModule,
+    NzTreeSelectModule,
+    NzRadioModule,
+    NzDropDownModule,
+    NzBreadCrumbModule,
+    NzAlertModule,
+    NzResultModule,
+    NzMessageModule,
+    NzUploadModule,
+    BitExtModule,
+    BitPipeModule,
+    BitDirectiveModule,
+  ],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA],
+})
+export class AppExtModule {}
+```
+
+配置 tsconfig.json ，在文件 `tsconfig.json` 中 `compilerOptions` 加入
+
+```json
+{
+  "compilerOptions": {
+    "paths": {
+      "@env": ["src/environments/environment.ts"],
+      "@common": ["src/app/common"],
+      "@common/*": ["src/app/common/*"],
+      "@api": ["src/app/api"],
+      "@api/*": ["src/app/api/*"],
+      "@ext": ["src/app/app.ext.module.ts"]
+    }
+  }
+}
+```
+
+建立公共语言包，创建文件 `src\app\app.language.ts`
+
+```typescript
+export default {
+  // The Dashboard Language Pack
+  dashboard: ["仪表盘", "Dashboard"],
+  language: ["中文", "English"],
+  center: ["个人中心", "Center"],
+  profile: ["信息修改", "Profile"],
+  exit: ["退出系统", "Exit"],
+
+  // The Common Language Pack
+  add: ["新增", "Add"],
+  edit: ["编辑", "Edit"],
+  delete: ["删除", "Delete"],
+  submit: ["提交", "Submit"],
+  reset: ["重置", "Reset"],
+  cancel: ["取消", "Cancel"],
+  back: ["返回", "Back"],
+  status: ["状态", "Status"],
+  on: ["开启", "On"],
+  off: ["冻结", "Off"],
+  yes: ["是", "Yes"],
+  no: ["否", "No"],
+  action: ["操作", "Action"],
+  upload: ["上传", "Upload"],
+  refreshLists: ["刷新列表", "Refresh Lists"],
+  clearSearch: ["清除搜索", "Clear Search"],
+  bulkDelete: ["批量删除", "Bulk Delete"],
+
+  // The Notification or Message Language Pack
+  success: ["操作成功", "Operation Success"],
+  error: ["操作失败", "Operation Failed"],
+  updateSuccess: [
+    "您的请求提交成功，已更新数据内容",
+    "Your request was submitted successfully and the data content has been updated",
+  ],
+  updateDelete: [
+    "您的请求提交异常，请稍后再试",
+    "Your request submission is abnormal, please try again later",
+  ],
+  deleteSuccess: [
+    "您的请求提交成功，该数据已被删除",
+    "Your request was submitted successfully and the data has been deleted",
+  ],
+  deleteError: [
+    "您的请求提交异常，请稍后再试",
+    "Your request submission is abnormal, please try again later",
+  ],
+  uploadSuccess: ["您的文件已上传完毕", "Your file has been uploaded"],
+  uploadError: [
+    "您的文件未能上传，请稍后再试",
+    "Your file failed to upload, please try again later",
+  ],
+  auth: ["认证提示", "Authorization Information"],
+  authLogout: [
+    "您已退出管理系统",
+    "You have logged out of the management system",
+  ],
+  authInvalid: [
+    "您的登录认证失效，请重新登录",
+    "Your login authentication is invalid, please log in again",
+  ],
+  roleError: [
+    "您没有权限加载此模块或当前模块已被屏蔽",
+    `You do not have permission to load this module or the current module has been blocked`,
+  ],
+
+  // The Tooltip Language Pack
+  I18nNoTip: ["无提示", "No prompt"],
+  i18nTip: ["多语言输入框", "A multilingual input box"],
+
+  // The Async Validate
+  validating: ["正在验证...", "Validating..."],
+
+  // The Status Language Pack
+  StatusSuccess: [
+    "您的请求提交成功，已更新数据状态",
+    "Your request was submitted successfully and the data status has been updated",
+  ],
+  StatusError: [
+    "您的请求提交异常，请稍后再试",
+    "Your request submission is abnormal, please try again later",
+  ],
+
+  // The Alert Language Pack
+  AddAlertSuccessTitle: ["操作成功", "Operation Success"],
+  AddAlertSuccessContent: [
+    "表单数据已提交完成，您是否要继续执行新增操作？",
+    "The form data has been submitted. Do you want to continue with the new operation?",
+  ],
+  AddAlertSuccessOk: ["继续新增", "Continue"],
+  AddAlertSuccessCancel: ["返回列表", "Back to list"],
+  AddAlertErrorTitle: ["操作失败", "Operation Failed"],
+  AddAlertErrorContent: [
+    "表单数据提交异常，请稍后再试",
+    "Form data submission exception, please try again later",
+  ],
+  AddAlertErrorOk: ["好的", "Ok"],
+  EditAlertSuccessTitle: ["操作成功", "Operation Success"],
+  EditAlertSuccessContent: [
+    "表单数据已提交完成，你是否要继续执行编辑操作？",
+    "The form data has been submitted. Do you want to continue with the new operation?",
+  ],
+  EditAlertSuccessOk: ["继续编辑", "Continue"],
+  EditAlertSuccessCancel: ["返回列表", "Back to list"],
+  EditAlertErrorTitle: ["操作失败", "Operation Failed"],
+  EditAlertErrorContent: [
+    "表单数据提交异常，请稍后再试",
+    "Form data submission exception, please try again later",
+  ],
+  EditAlertErrorOk: ["好的", "Ok"],
+  DeleteAlertTitle: ["请求确认", "Operation Question"],
+  DeleteAlertContent: [
+    "您确认删除当前数据吗？",
+    "Are you sure to delete the current data?",
+  ],
+  DeleteAlertOk: ["确认删除", "Confirm"],
+  DeleteAlertCancel: ["再想想", "Think again"],
+};
+```
+
+创建必要的服务与页面组件：主服务、仪表盘、登录、欢迎页、空白页
+
+```shell
+ng g service common/main
+ng g component dashboards --skip-import
+ng g component login --skip-import
+ng g component pages/welcome --skip-import
+ng g component pages/empty --skip-import
+```
+
+编写主服务（需根据后端实际情况更改），修改文件 `src\app\api\main.service.ts`
+
+```typescript
+import { Injectable } from "@angular/core";
+import { BitHttpService } from "ngx-bit";
+import { Observable } from "rxjs";
+import { map } from "rxjs/operators";
+
+@Injectable()
+export class MainService {
+  private model = "main";
+
+  constructor(private http: BitHttpService) {}
+
+  /**
+   * Login Api
+   */
+  login(username: string, password: string): Observable<any> {
+    return this.http.req(this.model + "/login", {
+      username,
+      password,
+    });
+  }
+
+  /**
+   * Logout Api
+   */
+  logout(): Observable<boolean> {
+    return this.http.req(this.model + "/logout").pipe(map((res) => !res.error));
+  }
+
+  /**
+   * Verify Token Api
+   */
+  verify(): Observable<boolean> {
+    return this.http.req(this.model + "/verify");
+  }
+
+  /**
+   * Get Resource
+   * @see https://github.com/kainonly/ngx-bit/blob/master/projects/ngx-bit/mock/resource.json
+   */
+  resource(): Observable<any> {
+    return this.http.req(this.model + "/resource").pipe(
+      map((res) => {
+        const resource: Map<string, any> = new Map<string, any>();
+        const router: Map<string, any> = new Map<string, any>();
+        const nav: any = [];
+
+        if (!res.error) {
+          for (const x of res.data) {
+            resource.set(x.key, x);
+            if (x.router === 1) {
+              router.set(x.key, x);
+            }
+          }
+          for (const x of res.data) {
+            if (!x.nav) {
+              continue;
+            }
+
+            if (x.parent === "origin") {
+              nav.push(x);
+            } else {
+              const parent = x.parent;
+              if (resource.has(parent)) {
+                const rows = resource.get(parent);
+                if (!rows.hasOwnProperty("children")) {
+                  rows.children = [];
+                }
+                rows.children.push(x);
+              }
+            }
+          }
+          return { resource, nav, router };
+        } else {
+          return {};
+        }
+      })
+    );
+  }
+}
+```
+
+编写令牌验证服务，修改文件 `src\app\common\token.service.ts`
+
+```typescript
+import { Injectable } from "@angular/core";
+import { CanActivate, Router } from "@angular/router";
+import { MainService } from "@api/main.service";
+import { map } from "rxjs/operators";
+
+@Injectable()
+export class TokenService implements CanActivate {
+  constructor(private mainService: MainService, private router: Router) {}
+
+  canActivate() {
+    return this.mainService.verify().pipe(
+      map((res: any) => {
+        if (res.error) {
+          this.router.navigateByUrl("/login");
+        }
+        return true;
+      })
+    );
+  }
+}
+```
+
+编写仪表盘组件，修改文件 `src\app\dashboards\dashboards.component.ts`
+
+```typescript
+import {
+  Component,
+  OnInit,
+  OnDestroy,
+  ViewChild,
+  TemplateRef,
+  ChangeDetectorRef,
+} from "@angular/core";
+import { ActivatedRoute, Router } from "@angular/router";
+import { BitService, BitEventsService, BitSupportService } from "ngx-bit";
+import { NzNotificationService } from "ng-zorro-antd";
+import { MainService } from "@api/main.service";
+import { Subscription } from "rxjs";
+
+@Component({
+  selector: "app-dashboards",
+  templateUrl: "./dashboards.component.html",
+  styleUrls: ["./dashboards.component.scss"],
+})
+export class DashboardsComponent implements OnInit, OnDestroy {
+  collapsed = false;
+  navLists: any[] = [];
+  private statusSubscription: Subscription;
+
+  constructor(
+    private router: Router,
+    private route: ActivatedRoute,
+    private mainService: MainService,
+    private events: BitEventsService,
+    private notification: NzNotificationService,
+    public support: BitSupportService,
+    public bit: BitService,
+    private changeDetectorRef: ChangeDetectorRef
+  ) {}
+
+  ngOnInit() {
+    this.getMenuLists();
+    this.support.setup(this.router);
+    this.events.on("refresh-menu").subscribe(() => {
+      this.getMenuLists();
+    });
+    this.statusSubscription = this.support.status.subscribe(() => {
+      this.changeDetectorRef.detectChanges();
+    });
+  }
+
+  ngOnDestroy() {
+    this.events.off("refresh-menu");
+    this.support.unsubscribe();
+    this.statusSubscription.unsubscribe();
+  }
+
+  /**
+   * Get Menu Lists
+   */
+  private getMenuLists() {
+    this.mainService.resource().subscribe((data) => {
+      this.support.setResource(data.resource, data.router);
+      this.navLists = data.nav;
+    });
+  }
+
+  /**
+   * User logout
+   */
+  logout() {
+    this.mainService.logout().subscribe(() => {
+      this.support.clearStorage();
+      this.support.unsubscribe();
+      this.router.navigateByUrl("/login");
+      this.notification.info(this.bit.l.auth, this.bit.l.authLogout);
+    });
+  }
+}
+```
+
+修改模板文件 `src\app\dashboards\dashboards.component.html`
+
+```html
+<nz-layout class="main-layout">
+  <perfect-scrollbar class="main-scrollbar">
+    <nz-sider nzCollapsible [(nzCollapsed)]="collapsed" [nzBreakpoint]="'lg'">
+      <perfect-scrollbar class="sider-scrollbar">
+        <ul
+          nz-menu
+          [nzTheme]="'dark'"
+          [nzInlineCollapsed]="collapsed"
+          [nzMode]="collapsed ? 'vertical' : 'inline'"
+        >
+          <ng-container
+            *ngTemplateOutlet="navTpl; context: { $implicit: navLists }"
+          ></ng-container>
+          <ng-template #navTpl let-navs>
+            <ng-container *ngFor="let x of navs">
+              <ng-container *ngIf="x.router; else notRouter">
+                <li
+                  nz-menu-item
+                  [bitOpen]="[x.key]"
+                  [nzSelected]="support.navActive.indexOf(x.key) !== -1"
+                >
+                  <i nz-icon [nzType]="x.icon"></i>
+                  <span class="nav-text"
+                    >{{ x.name | object: bit.locale }}</span
+                  >
+                </li>
+              </ng-container>
+              <ng-template #notRouter>
+                <li
+                  nz-submenu
+                  [nzOpen]="support.navActive.indexOf(x.key) !== -1"
+                >
+                  <span title>
+                    <i nz-icon [nzType]="x.icon"></i>
+                    <span>{{ x.name | object: bit.locale }}</span>
+                  </span>
+                  <ul>
+                    <ng-container
+                      *ngTemplateOutlet="navTpl; context: { $implicit: x.children }"
+                    ></ng-container>
+                  </ul>
+                </li>
+              </ng-template>
+            </ng-container>
+          </ng-template>
+        </ul>
+      </perfect-scrollbar>
+    </nz-sider>
+    <nz-layout class="right-layout" [ngClass]="{'collapsed':collapsed}">
+      <ul #header nz-menu [nzMode]="'horizontal'" [nzSelectable]="false">
+        <li nz-menu-item routerLink="/">
+          <i nz-icon nzType="dashboard"></i> {{ bit.l["dashboard"] }}
+        </li>
+
+        <li nz-submenu>
+          <span title>
+            <i nz-icon nzType="translation"></i>
+            {{ bit.l["language"] }}
+          </span>
+          <ul>
+            <li nz-menu-item (click)="bit.setLocale('zh_cn')">
+              <a title>中文</a>
+            </li>
+            <li nz-menu-item (click)="bit.setLocale('en_us')">
+              <a title>English</a>
+            </li>
+          </ul>
+        </li>
+
+        <li style="float: right" nz-submenu nzMenuClassName="center-submenu">
+          <span title>
+            <i nz-icon nzType="user"></i>
+            {{ bit.l["center"] }}
+          </span>
+          <ul>
+            <li nz-menu-item routerLink="/profile">
+              <a title
+                ><i nz-icon nzType="idcard"></i> {{ bit.l["profile"] }}</a
+              >
+            </li>
+            <li nz-menu-item (click)="logout()">
+              <a title><i nz-icon nzType="logout"></i> {{ bit.l["exit"] }}</a>
+            </li>
+          </ul>
+        </li>
+      </ul>
+      <nz-content>
+        <ng-container *ngTemplateOutlet="support.banner"></ng-container>
+        <nz-page-header
+          [nzTitle]="support.title | object: bit.locale"
+          [nzSubtitle]="!support.subTitle ? null : support.subTitle"
+          [nzBackIcon]="!support.back ? null : ''"
+          (nzBack)="bit.back()"
+        >
+          <nz-breadcrumb
+            [nzSeparator]="breadcrumbIcon"
+            nz-page-header-breadcrumb
+          >
+            <ng-template #breadcrumbIcon>
+              <i nz-icon nzType="right"></i>
+            </ng-template>
+            <nz-breadcrumb-item>
+              <a routerLink="/">{{ bit.l["dashboard"] }}</a>
+            </nz-breadcrumb-item>
+            <nz-breadcrumb-item
+              *ngFor="let x of support.breadcrumb; last as islast"
+            >
+              <ng-container *ngIf="islast; else notLast">
+                {{ x.name | object: bit.locale }}
+              </ng-container>
+              <ng-template #notLast>
+                <a *ngIf="x.router; else notRouterlink" [bitCrossLevel]="x.key">
+                  {{ x.name | object: bit.locale }}
+                </a>
+                <ng-template #notRouterlink
+                  >{{ x.name | object: bit.locale }}</ng-template
+                >
+              </ng-template>
+            </nz-breadcrumb-item>
+          </nz-breadcrumb>
+          <nz-page-header-extra>
+            <ng-container *ngTemplateOutlet="support.actions"></ng-container>
+          </nz-page-header-extra>
+        </nz-page-header>
+        <div #warpper class="app-warpper">
+          <router-outlet></router-outlet>
+        </div>
+      </nz-content>
+    </nz-layout>
+  </perfect-scrollbar>
+</nz-layout>
+```
+
+修改样式文件 `src\app\dashboards\dashboards.component.scss`
+
+```scss
+:host ::ng-deep {
+  .trigger {
+    font-size: 18px;
+    line-height: 64px;
+    padding: 0 24px;
+    cursor: pointer;
+    transition: color 0.3s;
+
+    &:hover {
+      color: #1890ff;
+    }
+  }
+}
+
+.main-layout {
+  height: 100%;
+  overflow: hidden;
+
+  .main-scrollbar {
+    height: 100%;
+  }
+}
+
+nz-sider {
+  overflow: hidden;
+  height: 100%;
+  position: fixed;
+  left: 0;
+
+  .sider-scrollbar {
+    height: 100%;
+    padding-bottom: 48px;
+  }
+}
+
+nz-layout {
+  &.right-layout {
+    transition: margin-left 0.2s;
+    margin-left: 200px;
+  }
+
+  &.collapsed {
+    margin-left: 80px;
+  }
+}
+
+nz-content {
+  .app-breadcrumb {
+    background-color: #fff;
+    padding: 16px 24px;
+  }
+
+  .app-warpper {
+    padding: 15px 12px;
+  }
+}
+```
+
+编写登录组件，修改文件 `src\app\login\login.component.ts`
+
+```typescript
+import { Component, OnInit } from "@angular/core";
+import { Router } from "@angular/router";
+import { FormBuilder, FormGroup, Validators } from "@angular/forms";
+import { NzNotificationService } from "ng-zorro-antd/notification";
+import { MainService } from "@api/main.service";
+import { BitService, BitSupportService } from "ngx-bit";
+import { StorageMap } from "@ngx-pwa/local-storage";
+import { switchMap } from "rxjs/operators";
+
+@Component({
+  selector: "app-login",
+  templateUrl: "./login.component.html",
+  styleUrls: ["./login.component.scss"],
+})
+export class LoginComponent implements OnInit {
+  form: FormGroup;
+  users: any[] = [];
+
+  constructor(
+    public bit: BitService,
+    private mainService: MainService,
+    private notification: NzNotificationService,
+    private router: Router,
+    private fb: FormBuilder,
+    private support: BitSupportService,
+    private storageMap: StorageMap
+  ) {}
+
+  ngOnInit(): void {
+    this.bit.registerLocales(import("./language"));
+    this.form = this.fb.group({
+      username: [
+        null,
+        [
+          Validators.required,
+          Validators.minLength(4),
+          Validators.maxLength(20),
+        ],
+      ],
+      password: [
+        null,
+        [
+          Validators.required,
+          Validators.minLength(12),
+          Validators.maxLength(20),
+        ],
+      ],
+      remember: [1, [Validators.required]],
+    });
+    this.storageMap.get("users").subscribe((data: Set<string>) => {
+      if (data) {
+        this.users = [...data.keys()];
+      }
+    });
+  }
+
+  submit(data: any): void {
+    this.mainService.login(data.username, data.password).subscribe((res) => {
+      if (!res.error) {
+        this.support.clearStorage();
+        if (data.remember) {
+          this.storageMap
+            .get("users")
+            .pipe(
+              switchMap((lists: Set<string>) =>
+                this.storageMap.set(
+                  "users",
+                  lists ? lists.add(data.username) : new Set([data.username])
+                )
+              )
+            )
+            .subscribe(() => {});
+        }
+        this.notification.success(this.bit.l.auth, this.bit.l.loginSuccess);
+        this.router.navigateByUrl("/");
+      } else {
+        this.notification.error(this.bit.l.auth, this.bit.l.loginError);
+      }
+    });
+  }
+}
+```
+
+建立子语言包，创建文件 `src\app\login\language.ts`
+
+```typescript
+export default {
+  username: ["账户", "Username"],
+  usernameRequire: ["请输入管理账户", "Please Enter Username"],
+  usernameCorrectly: [
+    "请输入正确的管理账户",
+    "Please Enter Correctly Username",
+  ],
+  password: ["口令", "Password"],
+  passwordRequire: ["请输入您的口令", "Please Enter You Password!"],
+  passwordCorrectly: [
+    "请输入格式正确的口令",
+    "Please Enter Correctly Password",
+  ],
+  login: ["登录", "Login"],
+  loginRemember: ["记住帐户登录", "Remember account login"],
+  loginSuccess: [
+    "登录成功，正在加载数据~",
+    "Successful login, data is being loaded~",
+  ],
+  loginError: [
+    "您的登录失败，请确实账户口令是否正确",
+    "Your login failed. Please confirm that the account password is correct",
+  ],
+};
+```
+
+修改模板文件 `src\app\login\login.component.html`
+
+```html
+<div class="container-login">
+  <div class="login-wrapper">
+    <h1>
+      <img src="assets/login.svg" alt="ant-design" />
+    </h1>
+    <form [formGroup]="form" (bitFormSubmit)="submit($event)">
+      <nz-form-item>
+        <nz-form-control [nzErrorTip]="username.ref">
+          <nz-input-group [nzSuffix]="usernameSuffix" [nzPrefix]="userPrefix">
+            <input
+              type="text"
+              nz-input
+              formControlName="username"
+              [nzAutocomplete]="auto"
+              [placeholder]="bit.l['usernameRequire']"
+            />
+            <nz-autocomplete #auto>
+              <ng-container *ngFor="let x of users">
+                <nz-auto-option [nzValue]="x">{{x}}</nz-auto-option>
+              </ng-container>
+            </nz-autocomplete>
+            <ng-template #userPrefix>
+              <i nz-icon nzType="user"></i>
+            </ng-template>
+            <ng-template #usernameSuffix>
+              <i
+                *ngIf="form.get('username').value"
+                nz-icon
+                nzType="close-circle"
+                (click)="form.get('username').reset()"
+              >
+              </i>
+            </ng-template>
+          </nz-input-group>
+          <bit-error-tip
+            #username
+            [hasError]="{
+            required:bit.l['usernameRequire'],
+            minlength:bit.l['usernameCorrectly'],
+            maxlength:bit.l['usernameCorrectly']
+          }"
+          >
+          </bit-error-tip>
+        </nz-form-control>
+      </nz-form-item>
+
+      <nz-form-item>
+        <nz-form-control [nzErrorTip]="password.ref">
+          <nz-input-group
+            [nzSuffix]="passwordSuffix"
+            [nzPrefix]="passwordPrefix"
+          >
+            <input
+              nz-input
+              type="password"
+              formControlName="password"
+              [placeholder]="bit.l['passwordRequire']"
+            />
+          </nz-input-group>
+          <ng-template #passwordPrefix>
+            <i nz-icon nzType="lock"></i>
+          </ng-template>
+          <ng-template #passwordSuffix>
+            <i
+              *ngIf="form.get('password').value"
+              nz-icon
+              nzType="close-circle"
+              (click)="form.get('password').reset()"
+            >
+            </i>
+          </ng-template>
+          <bit-error-tip
+            #password
+            [hasError]="{
+            required:bit.l['passwordRequire'],
+            minlength:bit.l['passwordCorrectly'],
+            maxlength:bit.l['passwordCorrectly']
+          }"
+          >
+          </bit-error-tip>
+        </nz-form-control>
+      </nz-form-item>
+
+      <nz-form-item>
+        <nz-form-control>
+          <label nz-checkbox formControlName="remember">
+            <span>{{bit.l['loginRemember']}}</span>
+          </label>
+        </nz-form-control>
+      </nz-form-item>
+
+      <nz-form-item>
+        <nz-form-control>
+          <button nz-button nzType="primary" [nzBlock]="true">
+            {{bit.l['login']}}
+          </button>
+        </nz-form-control>
+      </nz-form-item>
+    </form>
+  </div>
+</div>
+```
+
+修改样式文件 `src\app\login\login.component.scss`
+
+```scss
+.container-login {
+  height: 100%;
+  background: #fbfbfb;
+  position: relative;
+  overflow: hidden;
+}
+
+.login-wrapper {
+  width: 320px;
+  margin: 150px auto;
+  padding: 40px 25px 25px 25px;
+  background: #fff;
+  border-radius: 3px;
+  box-shadow: 0 7px 25px rgba(0, 0, 0, 0.08);
+
+  h1 {
+    padding-bottom: 25px;
+    text-align: center;
+
+    img {
+      height: 120px;
+      width: 120px;
+    }
+  }
+}
+```
+
+为登录组件建立懒加载模块，创建文件 `src\app\login\login.module.ts`
+
+```typescript
+import { NgModule } from "@angular/core";
+import { Routes, RouterModule } from "@angular/router";
+import { AppExtModule } from "@ext";
+import { LoginComponent } from "./login.component";
+
+const routes: Routes = [
+  {
+    path: "",
+    component: LoginComponent,
+  },
+];
+
+@NgModule({
+  imports: [AppExtModule, RouterModule.forChild(routes)],
+  declarations: [LoginComponent],
+})
+export class LoginModule {}
+```
+
+为欢迎页组件建立懒加载模块，创建文件 `src\app\pages\welcome\welcome.module.ts`
+
+```typescript
+import { NgModule } from "@angular/core";
+import { WelcomeComponent } from "./welcome.component";
+import { RouterModule, Routes } from "@angular/router";
+import { AppExtModule } from "@ext";
+
+const routes: Routes = [
+  {
+    path: "",
+    component: WelcomeComponent,
+  },
+];
+
+@NgModule({
+  imports: [AppExtModule, RouterModule.forChild(routes)],
+  declarations: [WelcomeComponent],
+})
+export class WelcomeModule {}
+```
+
+为空白页组件建立懒加载模块，创建文件 `src\app\pages\empty\empty.module.ts`
+
+```typescript
+import { NgModule } from "@angular/core";
+import { RouterModule, Routes } from "@angular/router";
+import { EmptyComponent } from "./empty.component";
+import { AppExtModule } from "@ext";
+
+const routes: Routes = [
+  {
+    path: "",
+    component: EmptyComponent,
+  },
+];
+
+@NgModule({
+  imports: [AppExtModule, RouterModule.forChild(routes)],
+  declarations: [EmptyComponent],
+})
+export class EmptyModule {}
+```
+
+建立路由模块（案例中使用的是自定义路由模块），删除默认的 `src\app\app-routing.module.ts` 并创建 `src\app\app.router.module.ts`
+
+```typescript
+import { NgModule } from "@angular/core";
+import { Routes, RouterModule } from "@angular/router";
+import { AppExtModule } from "@ext";
+import { DashboardsComponent } from "./dashboards/dashboards.component";
+
+const routes: Routes = [
+  {
+    path: "",
+    component: DashboardsComponent,
+    children: [
+      {
+        path: "",
+        loadChildren: () =>
+          import("./pages/welcome/welcome.module").then((m) => m.WelcomeModule),
+      },
+      {
+        path: "empty",
+        loadChildren: () =>
+          import("./pages/empty/empty.module").then((m) => m.EmptyModule),
+      },
+    ],
+  },
+];
+
+@NgModule({
+  imports: [AppExtModule, RouterModule.forChild(routes)],
+  declarations: [DashboardsComponent],
+})
+export class AppRouterModule {}
+```
+
+配置项目根模块，修改文件 `src\app\app.module.ts`
+
+```typescript
+import { BrowserModule } from "@angular/platform-browser";
+import { NgModule } from "@angular/core";
+import { BrowserAnimationsModule } from "@angular/platform-browser/animations";
+import { RouterModule, Routes } from "@angular/router";
+import { HttpClientModule } from "@angular/common/http";
+import { registerLocaleData } from "@angular/common";
+import { ServiceWorkerModule } from "@angular/service-worker";
+import zh from "@angular/common/locales/zh";
+import { environment } from "@env";
+import { NZ_I18N, zh_CN } from "ng-zorro-antd/i18n";
+import { StorageModule } from "@ngx-pwa/local-storage";
+import { NZ_CONFIG, NzConfig } from "ng-zorro-antd/core/config";
+import {
+  BitConfigService,
+  BitEventsService,
+  BitHttpService,
+  BitService,
+  BitSupportService,
+  BitSwalService,
+} from "ngx-bit";
+import {
+  PERFECT_SCROLLBAR_CONFIG,
+  PerfectScrollbarConfigInterface,
+  PerfectScrollbarModule,
+} from "ngx-perfect-scrollbar";
+
+registerLocaleData(zh);
+
+import { AppComponent } from "./app.component";
+import { MainService } from "@api/main.service";
+import { TokenService } from "@common/token.service";
+import { AppExtModule } from "@ext";
+
+const routes: Routes = [
+  {
+    path: "",
+    loadChildren: () =>
+      import("./app.router.module").then((m) => m.AppRouterModule),
+    canActivate: [TokenService],
+  },
+  {
+    path: "login",
+    loadChildren: () =>
+      import("./login/login.module").then((m) => m.LoginModule),
+  },
+];
+
+const ngZorroConfig: NzConfig = {
+  notification: { nzPlacement: "bottomRight" },
+};
+
+const bitConfig = () => {
+  const env = environment.bit;
+  const service = new BitConfigService();
+  Reflect.ownKeys(env).forEach((key) => {
+    service[key] = env[key];
+  });
+  return service;
+};
+
+const perfectBar: PerfectScrollbarConfigInterface = {
+  suppressScrollX: true,
+};
+
+@NgModule({
+  declarations: [AppComponent],
+  imports: [
+    BrowserModule,
+    BrowserAnimationsModule,
+    HttpClientModule,
+    AppExtModule,
+    PerfectScrollbarModule,
+    RouterModule.forRoot(routes, { useHash: true }),
+    ServiceWorkerModule.register("ngsw-worker.js", {
+      enabled: environment.production,
+    }),
+    StorageModule.forRoot({ IDBNoWrap: false }),
+  ],
+  providers: [
+    // Common Service
+    TokenService,
+
+    // API Service
+    MainService,
+
+    // Library Service
+    NzIconService,
+    BitService,
+    BitHttpService,
+    BitEventsService,
+    BitSupportService,
+    BitSwalService,
+    { provide: NZ_CONFIG, useValue: ngZorroConfig },
+    { provide: NZ_I18N, useValue: zh_CN },
+    { provide: BitConfigService, useFactory: bitConfig },
+    { provide: PERFECT_SCROLLBAR_CONFIG, useValue: perfectBar },
+  ],
+  bootstrap: [AppComponent],
+})
+export class AppModule {
+  constructor(config: BitConfigService, nzIconService: NzIconService) {
+    if (config.url.icon) {
+      nzIconService.changeAssetsSource(config.url.icon);
+    }
+  }
+}
+```
+
+修改根组件 `src\app\app.component.ts`
+
+```typescript
+import { Component, OnInit } from "@angular/core";
+import { BitConfigService, BitService } from "ngx-bit";
+import { map } from "rxjs/operators";
+
+@Component({
+  selector: "app-root",
+  template: ` <router-outlet></router-outlet> `,
+})
+export class AppComponent implements OnInit {
+  constructor(private bit: BitService, private config: BitConfigService) {}
+
+  ngOnInit() {
+    this.config.setupLocales(import("./app.language"));
+    this.config.setupHttpInterceptor(
+      map((res) => {
+        return res;
+      })
+    );
+  }
+}
+```
+
+开始运行，如编译正常说明前端配置完毕
+
+```shell
+npm start
+```
+
+到此项目并不能正常加载如下提示，因为还需要对应的后端运行
+
+`*core.js:6241 ERROR Error: Uncaught (in promise): HttpErrorResponse: {"headers":{"normalizedNames":{},"lazyUpdate":null,"headers":{}},"status":0,"statusText":"Unknown Error","url":"http://localhost:9501/system/main/verify","ok":false,"name":"HttpErrorResponse","message":"Http failure response for http://localhost:9501/system/main/verify*`
+
+可选择以下后端案例运行后正常加载，或更具需要自行定义框架：
+
+- [hyperf-api-case](https://github.com/kainonly/hyperf-api-case) 辅助 Hyperf 框架的工具集合使用案例
+- [think-api-case](https://github.com/kainonly/think-api-case) 辅助 ThinkPHP 框架的工具集合使用案例
+
+---
+
+## 服务
+
+### BitConfigService 统一配置
+
+辅助框架统一配置管理的服务，配置需要修改环境配置文件 `src\environments\environment.ts`
+
+```typescript
+import { en_US, zh_CN } from "ng-zorro-antd";
+import { BitConfig } from "ngx-bit/types";
+
+const bit: BitConfig = {
+  url: {
+    api: "http://localhost:9501",
+    static: "https://cdn.example.com/",
+    icon: "https://cdn.example.com/",
+  },
+  api: {
+    namespace: "/system",
+    withCredentials: true,
+    upload: "/system/main/uploads",
+    uploadStorage: "default",
+    uploadFetchSigned: "<if oss obs cos>",
+    uploadFetchSignedMethod: "<if oss obs cos>",
+    uploadSize: 5120,
+  },
+  curd: {
+    get: "/get",
+    lists: "/lists",
+    originLists: "/originLists",
+    add: "/add",
+    edit: "/edit",
+    status: "/edit",
+    delete: "/delete",
+  },
+  col: {
+    label: {
+      nzXXl: 4,
+      nzXl: 5,
+      nzLg: 6,
+      nzMd: 7,
+      nzSm: 24,
+    },
+    control: {
+      nzXXl: 8,
+      nzXl: 9,
+      nzLg: 10,
+      nzMd: 14,
+      nzSm: 24,
+    },
+    submit: {
+      nzXXl: { span: 8, offset: 4 },
+      nzXl: { span: 9, offset: 5 },
+      nzLg: { span: 10, offset: 6 },
+      nzMd: { span: 14, offset: 6 },
+      nzSm: { span: 24, offset: 0 },
+    },
+  },
+  locale: {
+    default: "zh_cn",
+    mapping: new Map<number, string>([
+      [0, "zh_cn"],
+      [1, "en_us"],
+    ]),
+    bind: new Map<string, any>([
+      ["zh_cn", zh_CN],
+      ["en_us", en_US],
+    ]),
+  },
+  i18n: {
+    default: "zh_cn",
+    contain: ["zh_cn", "en_us"],
+    switch: [
+      {
+        i18n: "zh_cn",
+        name: {
+          zh_cn: "中文",
+          en_us: "Chinese",
+        },
+      },
+      {
+        i18n: "en_us",
+        name: {
+          zh_cn: "英文",
+          en_us: "English",
+        },
+      },
+    ],
+  },
+  page: 20,
+};
+
+export const environment = {
+  production: false,
+  bit,
+};
+```
+
+#### 基本属性
+
+| 属性                          | 说明                                      | 类型                          | 默认值      |
+| ----------------------------- | ----------------------------------------- | ----------------------------- | ----------- |
+| `url.api`                     | 接口地址                                  | `string`                      | `''`        |
+| `url.static`                  | 静态资源地址                              | `string`                      | `''`        |
+| `url.icon`                    | icon 路径                                 | `string`                      | `undefined` |
+| `api.namespace`               | 接口命名空间                              | `string`                      | `''`        |
+| `api.withCredentials`         | 是否携带 cookie                           | `bool`                        | `false`     |
+| `api.upload`                  | 统一上传路径                              | `string`                      | `''`        |
+| `api.uploadStorage`           | 上传存储                                  | `'default' 'oss' 'obs' 'cos'` | `'default'` |
+| `api.uploadFetchSigned`       | 获取对象存储签名参数的请求                | `string`                      | `''`        |
+| `api.uploadFetchSignedMethod` | 获取对象存储签名参数的请求 Method         | `string`                      | `''`        |
+| `api.uploadSize`              | 上传文件大小限制                          | `number`                      | `5120`      |
+| `curd.*`                      | 请求处理默认 path                         | `string`                      | `''`        |
+| `col.{$key}`                  | 定义统一栅格                              | `object`                      | `{}`        |
+| `i18n.default`                | 多语言输入标识默认状态                    | `string`                      | `''`        |
+| `i18n.contain`                | 多语言输入包含标识                        | `string[]`                    | `[]`        |
+| `i18n.switch`                 | 多语言输入标识详情                        | `I18nOption[]`                | `[]`        |
+| `locale.default`              | 本地语言包标识默认状态                    | `string`                      | `''`        |
+| `locale.mapping`              | 本地语言包标识与语言包文件索引映射        | `Map<number, string>`         | `null`      |
+| `locale.bind`                 | 本地语言包标识与 ng-zorro-antd 语言包映射 | `Map<string, string>`         | `null`      |
+| `page`                        | 分页请求的默认数量                        | `number`                      | `0`         |
+
+- 如果静态资源为远程加载，则可以配置 `url.static`，这样可以通过 `BitService` 快捷的调用远程路径
+- 如果 `url.icon` 不被定义，则会加载本地的 icon 路径；如果被定义则会加载远程地址，例如 `https://cdn.example.com/`
+- 假设 `url.api` 接口地址定义为 `http://localhost:9501`，`api.namespace` 接口命名空间定义为 `/v1`，那么请求路径为 `http://localhost:9501/v1`；同理如果 `api.upload` 定义为 `/system/main/uploads`，那么上传路径则为 `http://localhost:9501/system/main/uploads`
+
+在表单中常常出现重复的栅格定义，如遇到修改则更是增大了维护难度，此时就可以通过统一栅格解决问题，例如 `col.{$key}`，`key` 是统一栅格的标识索引，其定义遵循 `ng-zorro-antd` 的对象栅格：
+
+```typescript
+const col = {
+  label: {
+    nzXXl: 4,
+    nzXl: 5,
+    nzLg: 6,
+    nzMd: 7,
+    nzSm: 24,
+  },
+  control: {
+    nzXXl: 8,
+    nzXl: 9,
+    nzLg: 10,
+    nzMd: 14,
+    nzSm: 24,
+  },
+  submit: {
+    nzXXl: { span: 8, offset: 4 },
+    nzXl: { span: 9, offset: 5 },
+    nzLg: { span: 10, offset: 6 },
+    nzMd: { span: 14, offset: 6 },
+    nzSm: { span: 24, offset: 0 },
+  },
+};
+```
+
+多语言输入并非前端中显示的多语言，而是为表单组件提供多种语言提交的方式
+
+- `default` 是 `BitI18nSwitchComponent` 多语言输入组件的默认语言
+- `contain` 代表辅助框架中包含的多语言输入类型数组集合
+- `switch` 是 `BitI18nSwitchComponent` 多语言输入组件的显示条件
+
+```typescript
+const i18n = {
+  default: "zh_cn",
+  contain: ["zh_cn", "en_us"],
+  switch: [
+    {
+      i18n: "zh_cn",
+      name: {
+        zh_cn: "中文",
+        en_us: "Chinese",
+      },
+    },
+    {
+      i18n: "en_us",
+      name: {
+        zh_cn: "英文",
+        en_us: "English",
+      },
+    },
+  ],
+};
+```
+
+语言包显示即在前端中对多语言的显示，由 `locale` 控制
+
+- `locale.default` 则是在前端中默认显示的语言标识
+- `locale.mapping` 代表在定义语言包文件中的索引映射，例如：
+
+```typescript
+// 当 `locale.mapping` 定义为
+const mapping = new Map<number, string>([
+  [0, "zh_cn"],
+  [1, "en_us"],
+]);
+
+// 语言包则按照索引配置语言
+export default {
+  dashboard: ["仪表盘", "Dashboard"],
+};
+```
+
+- `locale.bind` 则是绑定与 ng-zorro-antd 语言包映射，因为在多语言切换时将同时触发 ng-zorro-antd 组件语言的切换，例如：
+
+```typescript
+import { en_US, zh_CN } from "ng-zorro-antd";
+
+const bind = new Map<string, any>([
+  ["zh_cn", zh_CN],
+  ["en_us", en_US],
+]);
+```
+
+#### 安装公共语言包
+
+- setupLocales(packer: Promise<any>)
+  - packer `Promise<any>` 导入的语言包文件
+
+通常项目中需要定义公共语言包文件 `app.language.ts`，然后在根组件 `app.component.ts` 初始安装
+
+```typescript
+import { Component, OnInit } from "@angular/core";
+import { BitConfigService } from "ngx-bit";
+import { map } from "rxjs/operators";
+
+@Component({
+  selector: "app-root",
+  template: ` <router-outlet></router-outlet> `,
+})
+export class AppComponent implements OnInit {
+  constructor(private config: BitConfigService) {}
+
+  ngOnInit() {
+    this.config.setupLocales(import("./app.language"));
+  }
+}
+```
+
+#### 获取公共语言包中的一种语言
+
+- getLang(locale: string)
+  - locale `string` 语言标识
+
+#### 设置请求拦截器
+
+- setupHttpInterceptor(operate: OperatorFunction<any, any>)
+  - operate `OperatorFunction<any, any>` Rxjs 的 operate 工具
+
+```typescript
+import { Component, OnInit } from "@angular/core";
+import { BitConfigService } from "ngx-bit";
+import { map } from "rxjs/operators";
+
+@Component({
+  selector: "app-root",
+  template: ` <router-outlet></router-outlet> `,
+})
+export class AppComponent implements OnInit {
+  constructor(private config: BitConfigService) {}
+
+  ngOnInit() {
+    this.config.setupHttpInterceptor(
+      map((res) => {
+        return res;
+      })
+    );
+  }
+}
+```
+
+#### 获取请求拦截器
+
+- getHttpInterceptor()
+  - return `OperatorFunction<any, any>` Rxjs 的 operate 工具
+
+---
+
+### BitService 助手工具
+
+辅助架构中的助手工具，以下示例中 `bit` 为 `BitService` 服务的注入命名
+
+#### 基本属性
+
+| 属性          | 说明                 | 类型                | 默认值 |
+| ------------- | -------------------- | ------------------- | ------ |
+| `static`      | 静态资源地址         | `string`            | `''`   |
+| `uploads`     | 组合后的统一上传路径 | `string`            | `''`   |
+| `locale`      | 多语言标识           | `string`            | `''`   |
+| `l`           | 语言包索引           | `object`            | `{}`   |
+| `i18n`        | 多语言输入标识       | `string`            | `''`   |
+| `i18nTooltip` | 多语言输入提示       | `I18nTooltipOption` | `{}`   |
+| `i18nContain` | 多语言输入类型集合   | `string[]`          | `[]`   |
+
+- `uploads` 为组合后的统一上传路径（即接口地址+统一上传路径），通常可以直接使用在 `nz-upload` 组件中
+
+```html
+<!-- 使用在nzAction -->
+<nz-upload
+  nzName="image"
+  [nzAction]="bit.uploads"
+  [nzWithCredentials]="config.api.withCredentials"
+  [nzSize]="5120"
+  [nzShowUploadList]="false"
+>
+</nz-upload>
+<!-- 使用更简洁的方式实现相同定义 -->
+<nz-upload nzName="image" bitUpload [nzShowUploadList]="false"> </nz-upload>
+```
+
+- `locale` 为当前多语言标识状态通常使用在 `ObjectPipe`，例如：
+
+```html
+{{name|object:bit.locale}}
+```
+
+- `l` 为语言包索引，在组件完成语言包注册后可在模板中使用，例如：
+
+```html
+{{bit.l['dashboards']}}
+```
+
+- `i18nContain` 为多语言输入类型集合，通常可以用来筛选多语言输入的 ID，例如：
+
+```html
+<nz-form-item formGroupName="name">
+  <nz-form-label bitFormLabelCol nzRequired> {{bit.l['name']}} </nz-form-label>
+  <ng-container *ngFor="let x of bit.i18nContain">
+    <nz-form-control *ngIf="bit.equalI18n(x)" bitFormControlCol nzHasFeedback>
+      <input nz-input [formControlName]="x" />
+    </nz-form-control>
+  </ng-container>
+</nz-form-item>
+```
+
+#### 路由导航
+
+- open(urlTree: any[], extras?: NavigationExtras)
+  - urlTree `any[]` urlTree
+  - extras `NavigationExtras` 修改导航策略的选项
+
+`navigate` 路由导航的扩展，为跨级导航作为基础持久记录其路由参数
+
+```typescript
+bit.open(["admin-edit", 1]);
+```
+
+#### 路由历史
+
+- history(key: string)
+  - selector `string` 路由标签
+
+路由历史导航，加载被历史缓存的参数导航，例如：
+
+```typescript
+// 假设导航至/{team-index}/1
+bit.open(["team-index", 1]);
+// 再从/{team-index}/1导航至/{team-index}/1/services/T100
+bit.open(["team-index", 1, "services", "T100"]);
+// 此时使用history，可导航至/{team-index}/1
+bit.history("team-index");
+```
+
+#### 返回上一级
+
+- back()
+
+返回上一级，并重置 `i18n` 多语言输入标识
+
+```typescript
+// 导航至/{admin-index}
+bit.open(["admin-index"]);
+// 再从/{admin-index}导航至/{admin-edit}/1
+bit.open(["admin-edit", 1]);
+// 返回至/{admin-index}
+bit.back();
+```
+
+#### 局部注册语言包
+
+- registerLocales(packer: Promise<any>)
+
+将局部语言包加工与公共语言包合并，再提供给 `bit.l`，通常文件定义在组件内 `language.ts`
+
+- packer `Promise< any >` 导入的语言包文件
+
+```typescript
+import { Component, OnInit } from "@angular/core";
+import { BitService } from "ngx-bit";
+
+@Component({
+  selector: "app-welcome",
+  templateUrl: "./welcome.component.html",
+  styleUrls: ["./welcome.component.scss"],
+})
+export class WelcomeComponent implements OnInit {
+  constructor(public bit: BitService) {}
+
+  ngOnInit(): void {
+    this.bit.registerLocales(import("./language"));
+  }
+}
+```
+
+#### 设置多语言标识
+
+- setLocale(locale: string)
+  - locale `string` 语言包标识
+
+```typescript
+import { Component, OnInit } from "@angular/core";
+import { BitService } from "ngx-bit";
+
+@Component({
+  selector: "app-welcome",
+  templateUrl: "./welcome.component.html",
+  styleUrls: ["./welcome.component.scss"],
+})
+export class WelcomeComponent implements OnInit {
+  constructor(public bit: BitService) {}
+
+  ngOnInit(): void {}
+
+  switchToEnglish() {
+    this.bit.setLocale("en_us");
+  }
+}
+```
+
+#### 生成分页列表对象
+
+- listByPage(option: ListByPageOption): ListByPage
+  - option `ListByPageOption` 分页列表参数
+
+```typescript
+import { Component, OnInit } from "@angular/core";
+import { BitService } from "ngx-bit";
+import { ListByPage } from "ngx-bit/factory";
+
+@Component({
+  selector: "app-welcome",
+  templateUrl: "./welcome.component.html",
+  styleUrls: ["./welcome.component.scss"],
+})
+export class WelcomeComponent implements OnInit {
+  lists: ListByPage;
+
+  constructor(public bit: BitService) {}
+
+  ngOnInit(): void {
+    this.lists = this.bit.listByPage({
+      id: "welcome",
+      query: [{ field: "type", op: "=", value: 0 }],
+    });
+  }
+}
+```
+
+#### 判断多语言输入标识是否相等
+
+- equalI18n(i18n: string): boolean
+  - i18n `string` 多语言输入标识
+
+```html
+<nz-form-item formGroupName="name">
+  <nz-form-label bitFormLabelCol nzRequired> {{bit.l['name']}} </nz-form-label>
+  <ng-container *ngFor="let ID of bit.i18nContain">
+    <nz-form-control *ngIf="bit.equalI18n(ID)" bitFormControlCol nzHasFeedback>
+      <input
+        nz-input
+        [placeholder]="bit.l['namePlaceholder']"
+        [formControlName]="ID"
+      />
+    </nz-form-control>
+  </ng-container>
+</nz-form-item>
+```
+
+#### 重置多语言输入标识
+
+- resetI18n()
+
+```typescript
+this.bit.resetI18n();
+```
+
+#### 多语言输入 FormGroup 初始化
+
+- i18nGroup(options: I18nGroupOption): any
+  - options `I18nGroupOptions` 多语言组件参数
+    - value `object` 默认值
+      - ${ID} `array` 属于某个多语言标识的数值
+    - validate `object` 同步验证器数组
+      - ${ID} `array` 属于某个多语言标识的同步验证器
+    - asyncValidate `object` 异步验证器数组
+      - ${ID} `array` 属于某个多语言标识的异步验证器
+
+```typescript
+import { Component, OnInit } from "@angular/core";
+import { BitService } from "ngx-bit";
+import {
+  AbstractControl,
+  AsyncValidatorFn,
+  FormBuilder,
+  FormGroup,
+  Validators,
+} from "@angular/forms";
+import { of } from "rxjs";
+
+@Component({
+  selector: "app-welcome",
+  templateUrl: "./welcome.component.html",
+  styleUrls: ["./welcome.component.scss"],
+})
+export class WelcomeComponent implements OnInit {
+  form: FormGroup;
+
+  constructor(public bit: BitService, private fb: FormBuilder) {}
+
+  ngOnInit(): void {
+    this.form = this.fb.group({
+      name: this.fb.group(
+        this.bit.i18nGroup({
+          value: {
+            zh_cn: "测试",
+            en_us: "TEST",
+          },
+          validate: {
+            zh_cn: [Validators.required],
+            en_us: [],
+          },
+          asyncValidate: {
+            en_us: [this.fun1],
+          },
+        })
+      ),
+    });
+  }
+
+  fun1: AsyncValidatorFn = (control: AbstractControl) => {
+    return of({ error: true, duplicated: true });
+  };
+}
+```
+
+---
+
+### BitEventsService 组件通讯
+
+BitEventsService 为组件提供事件通讯功能，以下示例中 `events` 为 `BitEventsService` 服务的注入命名，例如多语言的切换基于：
+
+```typescript
+events.on("locale").subscribe((args) => {
+  console.log(args);
+  // zh_cn or en_us
+});
+```
+
+#### 判断组件通讯事件是否存在
+
+- exists(topic: string): boolean
+  - topic `string` 主题名称
+
+```typescript
+events.exists("test");
+```
+
+#### 发布组件通讯事件
+
+- publish(topic: string, args?: any)
+  - topic `string` 主题名称
+  - args `args` 发送参数
+
+```typescript
+events.publish("any", {
+  name: "kain",
+});
+```
+
+#### 订阅组件通讯事件
+
+- on(topic: string): Observable<any>
+  - topic `string` 主题名称
+  - Return `Observable<any>`
+
+```typescript
+events.on("any").subscribe((args) => {
+  console.log(args);
+});
+```
+
+#### 取消订阅的组件通讯事件
+
+- off(topic: string)
+  - topic `string` 主题名称
+
+```typescript
+events.off("any");
+```
+
+在每次路由组件 `OnDestory` 时，都需要将自定义事件取消订阅
+
+---
+
+### BitHttpService 请求处理
+
+BitHttpService 请求处理是对 `HttpClient` 的封装，可以通过它快捷对接后端 CURD 接口，以下示例中 `http` 为 `BitHttpService` 服务的注入命名
+
+#### 创建请求对象
+
+- req(url: string, body: any = {}, method = 'post'): Observable<any>
+  - url `string` 请求路由
+  - body `any` 发送数据
+  - method `string` 请求类型, 默认为 `post` 请求
+  - Return `Observable<any>`
+
+```typescript
+// 例如：请求资源接口
+http.req("main/resource").subscribe((res) => {
+  console.log(res);
+});
+```
+
+#### 创建获取单条数据的请求
+
+- get(model: string, condition: number | string | SearchOption[], order?: OrderOption, path?: string): Observable<any>
+  - model `string` 模块名称
+  - condition `number | string | SearchOptions[]` 查询条件，当类型为 `number` 或 `string` 是将作为主键返回后端，若为 `SearchOptions[]` 则会组合成 Laravel Query 的条件数组以 `where` 返回后端（ThinkPHP 同样支持）
+  - order `OrderOption` 排序条件
+  - path `string` 自定义路径
+
+```typescript
+// 主键查询
+http.get(this.model, id);
+// 条件查询
+http.get(this.model, [{ field: "username", op: "=", value: "kain" }]);
+```
+
+#### 创建分页列表数据的请求
+
+- lists(model: string, factory: ListByPage, option: ListsOption, path?: string): Observable<any>
+  - model `string` 模块名称
+  - factory `ListByPage` 分页列表对象
+  - option `ListsOption`
+    - refresh `boolean` 刷新，即重置分页
+    - persistence `boolean` 持久存储，即记录分页历史
+  - path `string` 自定义路径
+
+```typescript
+const search = bit.listByPage({
+  id: "admin-index",
+  query: [{ field: "sex", op: "=", value: 1 }],
+});
+
+http.lists("admin", search, {
+  refresh: true,
+  persistence: true,
+});
+```
+
+#### 创建列表数据的处理
+
+- originLists(model: string, condition: SearchOption[] = [], order?: OrderOption, path?: string): Observable<any>
+  - model `string` 模块名称
+  - condition `SearchOptions[]` 条件数组，组合成 Laravel Query 的条件数组以 `where` 返回后端（ThinkPHP 同样支持）
+  - order `OrderOption` 排序条件
+  - path `string` 自定义路径
+
+```typescript
+http.originLists("admin");
+```
+
+#### 创建一个新增的处理
+
+- add(model: string, data: any, path?: string): Observable<any>
+  - model `string` 模块名称
+  - data `any` body 数据
+  - path `string` 自定义路径
+
+```typescript
+const data = {
+  username: "kain",
+  email: "zhangtqx@vip.qq.com",
+};
+
+http.add("admin", data);
+```
+
+#### 创建一个编辑的处理
+
+- edit(model: string, data: any, condition?: SearchOptions[], path?: string): Observable<any>
+  - model `string` 模块名称
+  - data `any` body 数据
+  - condition `SearchOptions[]` 条件数组，组合成 Laravel Query 的条件数组以 `where` 返回后端（ThinkPHP 同样支持）
+  - path `string` 自定义路径
+
+```typescript
+const data = {
+  id: 1,
+  username: "kain",
+  email: "kainonly@qq.com",
+};
+
+http.edit("admin", data);
+
+// 当没有主键时，需要设置 condition
+const condition = [{ field: "username", op: "=", value: "kain" }];
+const data = {
+  email: "kainonly@qq.com",
+};
+
+http.edit("admin", data, condition);
+```
+
+#### 创建状态切换的请求
+
+- status(model: string, data: any, field = 'status', extra?: any, path?: string): Observable<any>
+  - model `string` 模块名称
+  - data `any` body 数据
+  - field `string` 状态字段，默认 `status`
+  - extra `any` 扩展字段
+  - path `string` 自定义路径
+
+状态将以相反的数值提交给后端
+
+```typescript
+const data = {
+  id: 1,
+  status: true,
+};
+// 此时将为后端传递的 status 为 false
+http.status("admin", data);
+
+// 如果状态字段为线上 online 可以这样设定
+const data = {
+  id: 1,
+  online: true,
+};
+
+http.status("admin", data, "online");
+
+// 假设它必须要增加一段关键的字段，则可以
+const data = {
+  id: 1,
+  online: true,
+};
+// 此时 {key:'a123'} 将合并入 body 内提交后端
+http.status("admin", data, "online", {
+  key: "a123",
+});
+```
+
+#### 创建删除的请求
+
+- delete(model: string, id?: any[], condition?: SearchOption[], path?: string): Observable<any>
+  - model `string` 模块名称
+  - id `any[]` 主键数组
+  - condition `SearchOptions[]` 条件数组，组合成 Laravel Query 的条件数组以 `where` 返回后端（ThinkPHP 同样支持）
+  - path `string` 自定义路径
+
+`id` 与 `condition` 两者必须选一种
+
+```typescript
+// 使用主键数组删除
+http.delete("admin", [1]);
+// 使用条件数组删除
+http.delete("admin", undefined, [
+  { field: "username", op: "=", value: "kain" },
+]);
+```
+
+---
+
+### BitSupportService 功能支持
+
+BitSupportService 作为附加的功能支持，以下示例中 `support` 为 `BitSupportService` 服务的注入命名
+
+#### 基本属性
+
+`BitSupportService` 服务所包含以下属性：
+
+| 属性            | 说明             | 类型                 | 默认值 |
+| --------------- | ---------------- | -------------------- | ------ |
+| `title`         | 当前路由的标题   | `any`                | `''`   |
+| `breadcrumb`    | 面包屑数组       | `BreadcrumbOption[]` | `[]`   |
+| `breadcrumbTop` | 面包屑默认最高级 | `any`                | `0`    |
+| `navActive`     | 被激活的导航     | `any[]`              | `[]`   |
+
+- `title` 可以使用在组件模板的页头中，显示当前路由的标题
+
+```html
+<nz-page-header
+  [nzTitle]="bit.support.title|Locale:bit.locale"
+></nz-page-header>
+```
+
+- `breadcrumb` 为仪表盘面包屑提供数据
+
+```html
+<nz-breadcrumb class="app-breadcrumb" [nzSeparator]="breadcrumbIcon">
+  <ng-template #breadcrumbIcon>
+    <i nz-icon nzType="right"></i>
+  </ng-template>
+  <nz-breadcrumb-item>
+    <a routerLink="/">{{bit.l['dashboard']}}</a>
+  </nz-breadcrumb-item>
+  <nz-breadcrumb-item *ngFor="let x of support.breadcrumb;last as islast">
+    <ng-container *ngIf="islast;else notLast"
+      >{{x.name|Locale:bit.locale}}</ng-container
+    >
+    <ng-template #notLast>
+      <a *ngIf="x.router;else notRouterlink" [bitCrossLevel]="x.key">
+        {{x.name|Locale:bit.locale}}
+      </a>
+      <ng-template #notRouterlink>{{x.name|Locale:bit.locale}}</ng-template>
+    </ng-template>
+  </nz-breadcrumb-item>
+</nz-breadcrumb>
+```
+
+- `breadcrumbTop` 用于定义面包屑默认最高级，这取决于面包屑数据对父节点的定义
+- `navActive` 为仪表盘导航菜单提供激活状态
+
+```html
+<ul
+  nz-menu
+  [nzInlineCollapsed]="collapsed"
+  [nzMode]="collapsed?'vertical':'inline'"
+>
+  <ng-container
+    *ngTemplateOutlet="navTpl; context: {$implicit: navLists}"
+  ></ng-container>
+  <ng-template #navTpl let-navs>
+    <ng-container *ngFor="let x of navs">
+      <ng-container *ngIf="x.router;else notRouter">
+        <li
+          nz-menu-item
+          [nzSelected]="support.navActive.indexOf(x.key)!==-1"
+          [bitOpen]="[x.key]"
+        >
+          <i nz-icon [nzType]="x.icon"></i>
+          <span class="nav-text">{{x.name|Locale:bit.locale}}</span>
+        </li>
+      </ng-container>
+      <ng-template #notRouter>
+        <li nz-submenu [nzOpen]="support.navActive.indexOf(x.key)!==-1">
+          <span title
+            ><i nz-icon [nzType]="x.icon"></i
+            ><span>{{x.name|Locale:bit.locale}}</span></span
+          >
+          <ul>
+            <ng-container
+              *ngTemplateOutlet="navTpl; context: {$implicit: x.children}"
+            ></ng-container>
+          </ul>
+        </li>
+      </ng-template>
+    </ng-container>
+  </ng-template>
+</ul>
+```
+
+#### 手动设置面包屑
+
+- setBreadcrumb(...breadcrumb: BreadcrumbOption[])
+  - breadcrumb `BreadcrumbOption[]` 面包屑参数
+    - $.name `any` 面包屑名称
+    - $.key `string` 路由标签
+    - $.router `0 | 1` 是否为路由
+
+```typescript
+const data: BreadcrumbOption[] = [
+  {
+    name: {
+      zh_cn: "测试1",
+    },
+    key: "test2",
+    router: 1,
+  },
+  {
+    name: {
+      zh_cn: "测试2",
+    },
+    key: "test2",
+    router: 1,
+  },
+];
+support.setBreadcrumb(...data);
+```
+
+#### 设置资源
+
+- setResource(resource: Map< string, any >, router: Map< string, any >)
+  - resource `Map<string, any>` 资源数据
+  - router `Map<string, any>` 路由数据
+
+为辅助框架提供路由解析基础，后端数据可查看 https://github.com/kainonly/ngx-bit/blob/master/projects/ngx-bit/mock/resource.json
+
+```typescript
+const resourceData: Map<string, any> = new Map<string, any>();
+const routerData: Map<string, any> = new Map<string, any>();
+const nav: any = [];
+
+if (!res.error) {
+for (const x of res.data) {
+    resourceData.set(x.key, x);
+    if (x.router === 1) {
+        routerData.set(x.key, x);
+    }
+}
+for (const x of res.data) {
+    if (!x.nav) {
+        continue;
+    }
+
+    if (x.parent === 'origin') {
+        nav.push(x);
+    } else {
+        const parent = x.parent;
+        if (resourceData.has(parent)) {
+            const rows = resourceData.get(parent);
+            if (!rows.hasOwnProperty('children')) {
+                rows.children = [];
+            }
+            rows.children.push(x);
+        }
+    }
+}
+support.setResource(resourceData, routerData);
+```
+
+#### 安装 support 支持
+
+- setup(router: Router, match: string[] = ['%7B', '%7D'])
+  - router `Router` 应用 `Router` 对象
+  - match `string[]` 路由标签获取符，默认`['%7B', '%7D']`
+
+```typescript
+support.setup(this.router);
+```
+
+#### 清除辅助框架相关本地存储
+
+- clearStorage()
+
+```typescript
+support.clearStorage();
+```
+
+#### 取消 support 订阅
+
+- unsubscribe()
+
+```typescript
+support.unsubscribe();
+```
+
+---
+
+### BitSwalService 提示确认
+
+BitSwalService 是基于 sweetalert2 的提交反馈栏服务
+
+#### 创建提示确认框
+
+- create(option: AlertOption): Observable<any>
+  - title `string` 标题
+  - content `string` 内容
+  - type `SweetAlertIcon` 图标类型
+  - width `number` 宽度
+  - okText `string` 确认按钮文字
+  - okDanger `boolean` 确认按钮是否为危险按钮
+  - okShow `boolean` 是否显示确认按钮
+  - cancelText `string` 取消按钮文字
+  - cancelShow `boolean` 是否显示取消按钮
+
+```typescript
+export class AclIndexComponent implements OnInit {
+  constructor(public bit: BitService, private swal: BitSwalService) {}
+
+  ngOnInit(): void {
+    this.swal
+      .create({
+        title: "This is a success message",
+        content: "some messages...some messages...",
+        type: "success",
+      })
+      .subscribe(() => {});
+  }
+}
+```
+
+#### 新增返回反馈栏
+
+- addAlert(res: any, form: FormGroup, reset?: any): Observable<any>
+  - res `any` 请求响应结果
+  - form `FormGroup` 表单对象
+  - reset `any` FormGroup 重置值
+
+例如, 在新增操作下组件表单提交中使用, `status` 为 `true` 表示确认提示框
+
+```typescript
+export class AclAddComponent implements OnInit {
+  constructor(
+    public bit: BitService,
+    private swal: BitSwalService,
+    private aclService: AclService
+  ) {}
+
+  submit(data): void {
+    this.aclService
+      .add(data)
+      .pipe(
+        switchMap((res) =>
+          this.swal.addAlert(res, this.form, {
+            status: true,
+          })
+        )
+      )
+      .subscribe(() => {});
+  }
+}
+```
+
+#### 修改返回反馈栏
+
+- editAlert(res: any): Observable<any>
+  - res `any` 请求响应结果
+
+例如, 在修改操作下组件表单提交中使用, `status` 为 `true` 表示确认提示框
+
+```typescript
+export class AclEditComponent implements OnInit {
+  private id: any;
+
+  constructor(
+    public bit: BitService,
+    private swal: BitSwalService,
+    private aclService: AclService
+  ) {}
+
+  submit(data): void {
+    Reflect.set(data, "id", this.id);
+    this.aclService
+      .edit(data)
+      .pipe(switchMap((res) => this.swal.editAlert(res)))
+      .subscribe((status) => {
+        if (status) {
+          this.getData();
+        }
+      });
+  }
+}
+```
+
+#### 删除返回反馈栏
+
+- deleteAlert(observable: Observable<any>): Observable<any>
+  - observable `Observable< any >` 异步处理
+
+例如, 在删除操作下使用, 订阅返回删除请求对象的响应值
+
+```typescript
+export class AclIndexComponent implements OnInit {
+  constructor(
+    public bit: BitService,
+    private swal: BitSwalService,
+    private message: NzMessageService,
+    public aclService: AclService
+  ) {}
+
+  deleteData(id: any[]): void {
+    this.swal.deleteAlert(this.aclService.delete(id)).subscribe((res) => {
+      if (!res.error) {
+        this.message.success(this.bit.l.deleteSuccess);
+        this.getLists(true);
+      } else {
+        this.message.error(this.bit.l.deleteError);
+      }
+    });
+  }
+}
+```
+
+---
+
+## 组件
+
+### bit-i18n-switch 多语言切换器
+
+提供应用表单多语言切换器，使表单组件具备多语言输入
+
+`<bit-i18n-switch (i18nChange)="change($event)"></bit-i18n-switch>`
+
+| 属性           | 说明               | 类型                   | 默认值 |
+| -------------- | ------------------ | ---------------------- | ------ |
+| `(i18nChange)` | 监听 i18n 值的变化 | `EventEmitter<string>` | -      |
+
+控制表单内所有多语言输入组件，在页头加入 `bit-i18n-switch`
+
+```html
+<nz-page-header
+  nzBackIcon
+  (nzBack)="bit.back()"
+  [nzTitle]="bit.support.title|Locale:bit.locale"
+>
+  <nz-page-header-extra>
+    <!-- 这里使用 -->
+    <bit-i18n-switch></bit-i18n-switch>
+  </nz-page-header-extra>
+</nz-page-header>
+
+<nz-card>
+  <form nz-form [formGroup]="form" (bitFormSubmit)="submit($event)">
+    <nz-form-item formGroupName="name" bitI18nUpdate>
+      <nz-form-label bitCol="label" nzRequired>
+        <span>
+          {{bit.l['name']}}
+          <i
+            nz-icon
+            nz-tooltip
+            [nzTooltipTitle]="bit.l['i18n']"
+            nzType="translation"
+            nzTheme="outline"
+          >
+          </i>
+        </span>
+      </nz-form-label>
+      <ng-container *ngFor="let x of bit.i18nContain">
+        <nz-form-control
+          *ngIf="bit.equalI18n(x)"
+          nzHasFeedback
+          bitCol="control"
+          [nzValidatingTip]="bit.l['validating']"
+          [nzErrorTip]="name.ref"
+        >
+          <input
+            nz-input
+            [nz-tooltip]="tooltip.ref"
+            [formControlName]="x"
+            [placeholder]="bit.l['namePlaceholder']"
+          />
+          <bit-i18n-tooltip #tooltip groupName="name"></bit-i18n-tooltip>
+          <bit-error-tip
+            #name
+            [hasError]="{
+                    required:bit.l['nameRequire'],
+                    duplicated:bit.l['nameDuplicated']
+                }"
+          ></bit-error-tip>
+        </nz-form-control>
+      </ng-container>
+    </nz-form-item>
+  </form>
+</nz-card>
+```
+
+---
+
+### bit-i18n-tooltip 多语言提示
+
+提供应用表单多语言输入的语言输入缺失提示
+
+`<bit-i18n-tips #i18nTips groupName="name_expression"></bit-i18n-tips>`
+
+| 属性        | 说明                 | 类型               | 默认值 |
+| ----------- | -------------------- | ------------------ | ------ |
+| `ref`       | 多语言提示模板       | `TemplateRef<any>` | -      |
+| `groupName` | 多语言 FormGroupName | `string`           | -      |
+
+将 `tooltip` 提供给 `[nz-tooltip]`
+
+```html
+<nz-card>
+  <form nz-form [formGroup]="form" (bitFormSubmit)="submit($event)">
+    <nz-form-item formGroupName="name" bitI18nUpdate>
+      <nz-form-label bitCol="label" nzRequired>
+        <span>
+          {{bit.l['name']}}
+          <i
+            nz-icon
+            nz-tooltip
+            [nzTooltipTitle]="bit.l['i18n']"
+            nzType="translation"
+            nzTheme="outline"
+          >
+          </i>
+        </span>
+      </nz-form-label>
+      <ng-container *ngFor="let x of bit.i18nContain">
+        <nz-form-control
+          *ngIf="bit.equalI18n(x)"
+          nzHasFeedback
+          bitCol="control"
+          [nzValidatingTip]="bit.l['validating']"
+          [nzErrorTip]="name.ref"
+        >
+          <input
+            nz-input
+            [nz-tooltip]="tooltip.ref"
+            [formControlName]="x"
+            [placeholder]="bit.l['namePlaceholder']"
+          />
+          <!-- 这里使用 -->
+          <bit-i18n-tooltip #tooltip groupName="name"></bit-i18n-tooltip>
+          <bit-error-tip
+            #name
+            [hasError]="{
+                    required:bit.l['nameRequire'],
+                    duplicated:bit.l['nameDuplicated']
+                }"
+          ></bit-error-tip>
+        </nz-form-control>
+      </ng-container>
+    </nz-form-item>
+  </form>
+</nz-card>
+```
+
+---
+
+### bit-error-tip 验证错误提示
+
+提供应用表单组件的验证错误提示方式
+
+`<bit-error-tip #errorTip [hasError]="{}"></bit-error-tip>`
+
+| 属性       | 说明             | 类型               | 默认值 |
+| ---------- | ---------------- | ------------------ | ------ |
+| `ref`      | 验证错误提示模板 | `TemplateRef<any>` | -      |
+| `hasError` | errors 错误信息  | `object`           | -      |
+
+将验证错误提示提供给 `nz-form-control` 的 `[nzErrorTip]`
+
+```html
+<nz-card>
+  <form nz-form [formGroup]="form" (bitFormSubmit)="submit($event)">
+    <nz-form-item formGroupName="name" bitI18nUpdate>
+      <nz-form-label bitCol="label" nzRequired>
+        <span>
+          {{bit.l['name']}}
+          <i
+            nz-icon
+            nz-tooltip
+            [nzTooltipTitle]="bit.l['i18n']"
+            nzType="translation"
+            nzTheme="outline"
+          >
+          </i>
+        </span>
+      </nz-form-label>
+      <ng-container *ngFor="let x of bit.i18nContain">
+        <nz-form-control
+          *ngIf="bit.equalI18n(x)"
+          nzHasFeedback
+          bitCol="control"
+          [nzValidatingTip]="bit.l['validating']"
+          [nzErrorTip]="name.ref"
+        >
+          <input
+            nz-input
+            [nz-tooltip]="tooltip.ref"
+            [formControlName]="x"
+            [placeholder]="bit.l['namePlaceholder']"
+          />
+          <bit-i18n-tooltip #tooltip groupName="name"></bit-i18n-tooltip>
+          <!-- 这里使用 -->
+          <bit-error-tip
+            #name
+            [hasError]="{
+                    required:bit.l['nameRequire'],
+                    duplicated:bit.l['nameDuplicated']
+                }"
+          ></bit-error-tip>
+        </nz-form-control>
+      </ng-container>
+    </nz-form-item>
+  </form>
+</nz-card>
+```
+
+---
+
+### bit-header 页头填充
+
+为路由页面提供页头内容的信息填充
+
+`<bit-header back subTitle="subTitle">content</bit-header>`
+
+其中组件内容元素将显示在 **PageHeader** 页头组件的 **nz-page-header-extra** 内
+
+| 属性       | 说明             | 类型                          | 默认值  |
+| ---------- | ---------------- | ----------------------------- | ------- |
+| `back`     | 是否显示返回按钮 | `boolean`                     | `false` |
+| `subTitle` | 子标题           | `string \| TemplateRef<void>` | -       |
+
+使用页头填充要配合 `BitSupportService` 使用，首先要在根应用组件中加入（通常包含主 `<router-outlet></router-outlet>`）：
+
+```html
+<ng-container *ngTemplateOutlet="support.banner"></ng-container>
+<nz-page-header
+  [nzTitle]="support.title|Locale:bit.locale"
+  [nzSubtitle]="!support.subTitle?null:support.subTitle"
+  [nzBackIcon]="!support.back?null:''"
+  (nzBack)="bit.back()"
+>
+  <nz-breadcrumb [nzSeparator]="breadcrumbIcon" nz-page-header-breadcrumb>
+    <ng-template #breadcrumbIcon>
+      <i nz-icon nzType="right"></i>
+    </ng-template>
+    <nz-breadcrumb-item>
+      <a routerLink="/">{{bit.l['dashboard']}}</a>
+    </nz-breadcrumb-item>
+    <nz-breadcrumb-item *ngFor="let x of support.breadcrumb;last as islast">
+      <ng-container *ngIf="islast;else notLast"
+        >{{x.name|Locale:bit.locale}}</ng-container
+      >
+      <ng-template #notLast>
+        <a *ngIf="x.router;else notRouterlink" [bitCrossLevel]="x.key">
+          {{x.name|Locale:bit.locale}}
+        </a>
+        <ng-template #notRouterlink>{{x.name|Locale:bit.locale}}</ng-template>
+      </ng-template>
+    </nz-breadcrumb-item>
+  </nz-breadcrumb>
+  <nz-page-header-extra>
+    <ng-container *ngTemplateOutlet="support.actions"></ng-container>
+  </nz-page-header-extra>
+</nz-page-header>
+```
+
+然后为了根应用检测的正确性，还需要增加手动执行检测：
+
+```typescript
+@Component({
+  selector: "app-dashboards",
+  templateUrl: "./dashboards.component.html",
+  styleUrls: ["./dashboards.component.scss"],
+})
+export class DashboardsComponent implements OnInit, OnDestroy {
+  private statusSubscription: Subscription;
+
+  constructor(
+    public support: BitSupportService,
+    private changeDetectorRef: ChangeDetectorRef
+  ) {}
+
+  ngOnInit() {
+    this.statusSubscription = this.support.status.subscribe(() => {
+      this.changeDetectorRef.detectChanges();
+    });
+  }
+
+  ngOnDestroy() {
+    this.statusSubscription.unsubscribe();
+  }
+}
+```
+
+接下来就可以在路由页面中做页头填充
+
+```html
+<bit-header>
+  <button nz-button nzType="primary" [bitOpen]="['any-add']">
+    <span>新增</span>
+  </button>
+</bit-header>
+```
+
+在页头上方设置顶部公告
+
+```html
+<nz-alert
+  bitBanner
+  nzBanner
+  nzType="info"
+  nzCloseable
+  [nzMessage]="'some messages...some messages...'"
+></nz-alert>
+<bit-header>
+  <button nz-button nzType="primary" [bitOpen]="['any-add']">
+    <span>新增</span>
+  </button>
+</bit-header>
+```
+
+---
+
+### bit-print 模板组件
+
+配合多语言包提供更多的变量类型支持，例如 `TemplateRef<any>`
+
+`<bit-print #print [text]="''" [vars]="[]"></bit-print>`
+
+| 属性   | 说明       | 类型               | 默认值 |
+| ------ | ---------- | ------------------ | ------ |
+| `ref`  | 打印模板   | `TemplateRef<any>` | -      |
+| `text` | 字符串模板 | `string`           | -      |
+| `vars` | 模板变量   | `any[]`            | -      |
+
+使用 `TemplateRef<any>` 模板变量
+
+```html
+<nz-alert
+  bitBanner
+  nzBanner
+  nzType="info"
+  nzCloseable
+  [nzMessage]="nzMessage.ref"
+>
+  <bit-print #nzMessage [text]="bit.l['info']" [vars]="[vars0, vars1, vars2]">
+    <ng-template #vars0>
+      <nz-tag>
+        <i nz-icon nzType="flag"></i>
+      </nz-tag>
+    </ng-template>
+    <ng-template #vars1>
+      <nz-tag>
+        <i nz-icon nzType="file-done"></i>
+      </nz-tag>
+    </ng-template>
+    <ng-template #vars2>
+      <nz-tag>
+        <i nz-icon nzType="control"></i>
+      </nz-tag>
+    </ng-template>
+  </bit-print>
+</nz-alert>
+```
+
+---
+
+## 指令
+
+### bitBack 返回上一级
+
+可以在应用中返回链接
+
+`[bitBack]`
+
+将 `[bitBack]` 设置给 button 按钮，当点击 button 时返回上一级链接
+
+```html
+<button nz-button type="button" bitBack>返回上一级</button>
+```
+
+---
+
+### bitHistory 历史导航
+
+加载被历史缓存的参数导航
+
+`[bitHistory]`
+
+| 属性           | 说明         | 类型     | 默认值 |
+| -------------- | ------------ | -------- | ------ |
+| `[bitHistory]` | 跨级路由名称 | `string` | -      |
+
+假设导航至/{team-index}/1，再从/{team-index}/1 导航至/{team-index}/1/services/T100
+
+```html
+<button nz-button type="button" bitHistory="team-index">历史导航</button>
+```
+
+此时执行 button 将跳转至/{team-index}/1
+
+---
+
+### bitCol 栅格标识
+
+为应用定义统一栅格
+
+`[bitCol]`
+
+| 属性       | 说明         | 类型     | 默认值 |
+| ---------- | ------------ | -------- | ------ |
+| `[bitCol]` | 统一栅格索引 | `string` | -      |
+
+首先要确保 `src\environments\environment.ts` 中配置完整并将配置加载入模块中，假设统一栅格定义为：
+
+```typescript
+const col = {
+  label: {
+    nzXXl: 4,
+    nzXl: 5,
+    nzLg: 6,
+    nzMd: 7,
+    nzSm: 24,
+  },
+  control: {
+    nzXXl: 8,
+    nzXl: 9,
+    nzLg: 10,
+    nzMd: 14,
+    nzSm: 24,
+  },
+  submit: {
+    nzXXl: { span: 8, offset: 4 },
+    nzXl: { span: 9, offset: 5 },
+    nzLg: { span: 10, offset: 6 },
+    nzMd: { span: 14, offset: 6 },
+    nzSm: { span: 24, offset: 0 },
+  },
+};
+```
+
+那么就可以在组件中使用 `[bitCol]` 分配统一栅格
+
+```html
+<nz-form-item>
+  <nz-form-label bitCol="label" nzRequired> {{bit.l['status']}} </nz-form-label>
+  <nz-form-control bitCol="control">
+    <nz-switch
+      formControlName="status"
+      [nzCheckedChildren]="bit.l['on']"
+      [nzUnCheckedChildren]="bit.l['off']"
+    >
+    </nz-switch>
+  </nz-form-control>
+</nz-form-item>
+
+<nz-form-item>
+  <nz-form-control bitCol="submit">
+    <nz-space>
+      <nz-space-item>
+        <button nz-button nzType="primary" [disabled]="!form.valid">
+          <i nz-icon nzType="check"></i> {{bit.l['submit']}}
+        </button>
+      </nz-space-item>
+      <nz-space-item>
+        <button nz-button type="button" bitBack>
+          <i nz-icon nzType="close"></i> {{bit.l['cancel']}}
+        </button>
+      </nz-space-item>
+    </nz-space>
+  </nz-form-control>
+</nz-form-item>
+```
+
+---
+
+### bitFormSubmit 表单提交
+
+协助应用表单提交时自动进行 controls 的 `markAsDirty` `updateValueAndValidity`
+
+`[bitFormSubmit]`
+
+| 属性              | 说明         | 类型                | 默认值 |
+| ----------------- | ------------ | ------------------- | ------ |
+| `(bitFormSubmit)` | 监听表单提交 | `EventEmitter<any>` | -      |
+
+首先定义组件表单提交
+
+```typescript
+import { Component, OnInit } from "@angular/core";
+import { FormBuilder, FormGroup } from "@angular/forms";
+
+@Component({
+  selector: "app-welcome",
+  templateUrl: "./welcome.component.html",
+  styleUrls: ["./welcome.component.scss"],
+})
+export class WelcomeComponent implements OnInit {
+  form: FormGroup;
+
+  constructor(private fb: FormBuilder) {}
+
+  ngOnInit(): void {
+    this.form = this.fb.group({
+      name: [],
+    });
+  }
+
+  submit(data) {
+    // output data
+  }
+}
+```
+
+再为组件定义模板
+
+```html
+<form nz-form [formGroup]="form" (bitFormSubmit)="submit($event)">
+  <nz-form-item>
+    <nz-form-label bitCol="label"> Name </nz-form-label>
+    <nz-form-control bitCol="control" nzHasFeedback>
+      <input nz-input formControlName="name" />
+    </nz-form-control>
+  </nz-form-item>
+  <nz-form-item>
+    <nz-form-control bitCol="submit">
+      <nz-space>
+        <nz-space-item>
+          <button nz-button nzType="primary" [disabled]="!form.valid">
+            <i nz-icon nzType="check"></i> Submit
+          </button>
+        </nz-space-item>
+      </nz-space>
+    </nz-form-control>
+  </nz-form-item>
+</form>
+```
+
+当表单提交时将触发 `submit($event)`
+
+---
+
+### bitI18nUpdate 多语言输入更新
+
+协助应用表单的多语言输入组件更新状态，为 `bit-i18n-tooltip` 多语言提示提供支持
+
+`[bitI18nUpdate]`
+
+为 FormGroup 为 name 的多语言输入组件进行状态更新
+
+```html
+<nz-card>
+  <form nz-form [formGroup]="form" (bitFormSubmit)="submit($event)">
+    <!-- 这里使用 -->
+    <nz-form-item formGroupName="name" bitI18nUpdate>
+      <nz-form-label bitCol="label" nzRequired>
+        <span>
+          {{bit.l['name']}}
+          <i
+            nz-icon
+            nz-tooltip
+            [nzTooltipTitle]="bit.l['i18n']"
+            nzType="translation"
+            nzTheme="outline"
+          >
+          </i>
+        </span>
+      </nz-form-label>
+      <ng-container *ngFor="let x of bit.i18nContain">
+        <nz-form-control
+          *ngIf="bit.equalI18n(x)"
+          nzHasFeedback
+          bitCol="control"
+          [nzValidatingTip]="bit.l['validating']"
+          [nzErrorTip]="name.ref"
+        >
+          <input
+            nz-input
+            [nz-tooltip]="tooltip.ref"
+            [formControlName]="x"
+            [placeholder]="bit.l['namePlaceholder']"
+          />
+          <bit-i18n-tooltip #tooltip groupName="name"></bit-i18n-tooltip>
+          <bit-error-tip
+            #name
+            [hasError]="{
+                    required:bit.l['nameRequire'],
+                    duplicated:bit.l['nameDuplicated']
+                }"
+          ></bit-error-tip>
+        </nz-form-control>
+      </ng-container>
+    </nz-form-item>
+  </form>
+</nz-card>
+```
+
+---
+
+### bitOpen 路由导航
+
+`navigate` 路由导航的扩展，为跨级导航作为基础持久记录其路由参数
+
+`[bitOpen]`
+
+| 属性        | 说明               | 类型             | 默认值 |
+| ----------- | ------------------ | ---------------- | ------ |
+| `[bitOpen]` | urlTree            | `any[]`          | -      |
+| `[extras]`  | 修改导航策略的选项 | NavigationExtras | -      |
+
+`bitOpen` 在使用中与 `routerlink` 基本相同
+
+```html
+<button nz-button nzType="primary" nzSize="small" [bitOpen]="['admin-index']">
+  导航至管理员列表
+</button>
+
+<a [bitOpen]="['admin-edit', 1]">
+  <i nz-icon type="edit"></i> 导航至管理员修改
+</a>
+
+<button
+  nz-button
+  nzType="primary"
+  nzSize="small"
+  [bitOpen]="['team-index']"
+  [extras]="{queryParams:{key:'abc'}}"
+>
+  导航附加 extras
+</button>
+```
+
+---
+
+### bitSearchChange 搜索监听
+
+为分页列表提供搜索监听功能
+
+`[bitSearchChange]`
+
+| 属性                | 说明         | 类型                | 默认值 |
+| ------------------- | ------------ | ------------------- | ------ |
+| `[bitSearchChange]` | 分页列表对象 | `ListByPage`        | -      |
+| `(after)`           | 搜索变动之后 | `EventEmitter<any>` | -      |
+
+监听包含 `NgModelChange` 的组件中
+
+```typescript
+@Component({
+  template: `
+    <ng-container *ngIf="lists.hasSearch('type')">
+      <select
+        [bitSearchChange]="lists"
+        [(ngModel)]="lists.search['type'].value"
+        (after)="after()"
+      >
+        <ng-container *ngFor="let option of options">
+          <option [label]="option.label" [value]="option.value"></option>
+        </ng-container>
+      </select>
+    </ng-container>
+  `,
+})
+class TestComponent implements OnInit {
+  lists: ListByPage;
+  options: any[] = [
+    { label: "type1", value: 0 },
+    { label: "type1", value: 1 },
+    { label: "type2", value: 2 },
+  ];
+
+  constructor(private bit: BitService) {}
+
+  ngOnInit() {
+    this.lists = this.bit.listByPage({
+      id: "test",
+      query: [{ field: "type", op: "=", value: 0 }],
+    });
+  }
+
+  after() {}
+}
+```
+
+---
+
+### bitSearchStart 搜索触发
+
+为分页列表提供搜索触发功能，触发事件为 `click` 与 `keydown.enter`
+
+`[bitSearchStart]`
+
+| 属性               | 说明         | 类型                | 默认值 |
+| ------------------ | ------------ | ------------------- | ------ |
+| `[bitSearchStart]` | 分页列表对象 | `ListByPage`        | -      |
+| `(after)`          | 搜索变动之后 | `EventEmitter<any>` | -      |
+
+为 `input` 与 `button` 创建分页列表搜索触发功能
+
+```typescript
+@Component({
+  template: `
+    <ng-container *ngIf="lists.hasSearch('username')">
+      <input
+        [bitSearchStart]="lists"
+        [(ngModel)]="lists.search['username'].value"
+        (after)="after()"
+      />
+      <button [bitSearchStart]="lists" (after)="after()">搜索</button>
+    </ng-container>
+  `,
+})
+class TestComponent implements OnInit {
+  lists: ListByPage;
+
+  constructor(private bit: BitService) {}
+
+  ngOnInit() {
+    this.lists = this.bit.listByPage({
+      id: "test",
+      query: [{ field: "username", op: "=", value: "" }],
+    });
+  }
+
+  after() {}
+}
+```
+
+---
+
+### bitSearchClear 搜索清除
+
+为分页列表提供搜索清除功能
+
+`[bitSearchClear]`
+
+| 属性               | 说明         | 类型                | 默认值 |
+| ------------------ | ------------ | ------------------- | ------ |
+| `[bitSearchClear]` | 分页列表对象 | `ListByPage`        | -      |
+| `[reset]`          | 重置的数值   | `any`               | -      |
+| `(after)`          | 搜索变动之后 | `EventEmitter<any>` | -      |
+
+为 `button` 创建分页列表搜索清除功能
+
+```typescript
+@Component({
+  template: `
+    <ng-container *ngIf="lists.hasSearch('type')">
+      <select
+        [bitSearchChange]="lists"
+        [(ngModel)]="lists.search['type'].value"
+      >
+        <ng-container *ngFor="let option of options">
+          <option [label]="option.label" [value]="option.value"></option>
+        </ng-container>
+      </select>
+      <button [bitSearchClear]="lists" (after)="after()">测试清除</button>
+    </ng-container>
+  `,
+})
+class TestComponent implements OnInit {
+  lists: ListByPage;
+  options: any[] = [
+    { label: "type1", value: 0 },
+    { label: "type1", value: 1 },
+    { label: "type2", value: 2 },
+  ];
+
+  constructor(private bit: BitService) {}
+
+  ngOnInit() {
+    this.lists = this.bit.listByPage({
+      id: "test",
+      query: [{ field: "type", op: "=", value: 0 }],
+    });
+  }
+
+  after() {}
+}
+```
+
+---
+
+### bitStatusChange 状态切换
+
+为开关选择器提供状态请求切换功能
+
+`[bitStatusChange]`
+
+| 属性                | 说明                 | 类型                | 默认值  |
+| ------------------- | -------------------- | ------------------- | ------- |
+| `[bitStatusChange]` | 状态切换请求         | `Observable<any>`   | -       |
+| `[bitControl]`      | 是否手动处理返回提示 | `boolean`           | `false` |
+| `(response)`        | 获取请求的响应值     | `EventEmitter<any>` | -       |
+
+为 `nz-switch` 创建状态请求切换功能
+
+```typescript
+@Component({
+  template: `
+    <nz-switch
+      [(ngModel)]="data.status"
+      [bitStatusChange]="testService.status(data)"
+      [bitControl]="true"
+      (response)="statusFeedback($event)"
+    >
+    </nz-switch>
+  `,
+})
+class TestComponent {
+  data: any = {
+    id: 1,
+    status: true,
+  };
+
+  constructor(public testService: TestService) {}
+
+  statusFeedback(event) {}
+}
+```
+
+---
+
+### bitUpload 上传
+
+为文件上传组件提供配置绑定
+
+`[bitUpload]`
+
+通常情况 `nz-upload` 需要这样定义
+
+```html
+<nz-upload
+  nzName="image"
+  [nzAction]="bit.uploads"
+  [nzWithCredentials]="config.api.withCredentials"
+  [nzSize]="5120"
+  [nzShowUploadList]="false"
+>
+</nz-upload>
+```
+
+为 `nz-upload` 创建配置绑定后可以更简洁的实现相同定义
+
+```html
+<nz-upload nzName="image" bitUpload [nzShowUploadList]="false"> </nz-upload>
+```
+
+如果上传为对象存储，则 `nzName` 需要为 `file`
+
+```html
+<nz-upload class="upload" bitUpload nzName="file">
+  <button nz-button>
+    <i nz-icon [nzType]="'upload'"></i><span>{{ bit.l["upload"] }}</span>
+  </button>
+</nz-upload>
+```
+
+此时统一配置需要设置 `api.upload` `api.uploadStorage` `api.uploadFetchSigned` `api.uploadFetchSignedMethod`，`api.upload` 替换为对象存储的请求地址（`nzWithCredentials` 不会继承统一配置并为 `false`），`api.uploadStorage` 是对象存储类型可以设置为 `oss` 阿里云、`cos` 腾讯云、`obs` 华为云等，`api.uploadFetchSigned` `api.uploadFetchSignedMethod` 是后端为对象存储生成的签名请求（不同的服务商返回参数不同），例如：
+
+- 阿里云
+  - filename `string` 文件名（不加扩展名）
+  - option 配置项
+    - policy `string` 对象存储策略
+    - access_key_id `string` AccessKeyId
+    - signature `string` 签名
+
+```http
+GET /system/main/presigned HTTP/1.1
+Content-Type: application/json
+{
+    filename: '...',
+    option: {
+        policy: '...',
+        access_key_id: '...',
+        signature: '...'
+    }
+}
+```
+
+- 腾讯云
+  - filename `string` 文件名（不加扩展名）
+  - option 配置项
+    - policy `string` 对象存储策略
+    - sign_algorithm `string` 签名算法
+    - ak `string` AccessKey
+    - key_time `string` 时间范围
+    - signature `string` 签名
+
+```http
+GET /system/main/presigned HTTP/1.1
+Content-Type: application/json
+{
+    policy: '...',
+    sign_algorithm: 'sha1',
+    ak: '...',
+    key_time: '1610462610;1610463210',
+    signature: '...'
+}
+```
+
+- 华为云
+  - filename `string` 文件名（不加扩展名）
+  - option 配置项
+    - policy `string` 对象存储策略
+    - access_key_id `string` AccessKeyId
+    - signature `string` 签名
+
+```
+GET /system/main/presigned HTTP/1.1
+Content-Type: application/json
+{
+    key: '...',
+    policy: '...',
+    AccessKeyId: '...',
+    signature: '...'
+}
+```
+
+---
+
+## 管道
+
+### Empty 空判断
+
+通过管道判断数值是否为空
+
+```
+{{ value_expression | Empty }}
+```
+
+- value `any` 任何
+- Return `boolean`
+
+假设存在一个空数组 `lists`（`undefined` `''` `0` `false` `null` `[]` `{}` 都被判断为空）
+
+```typescript
+import { Component, OnInit } from "@angular/core";
+
+@Component({
+  selector: "app-welcome",
+  templateUrl: "./welcome.component.html",
+  styleUrls: ["./welcome.component.scss"],
+})
+export class WelcomeComponent implements OnInit {
+  lists: any[] = [];
+
+  ngOnInit(): void {}
+}
+```
+
+在模版中判断使用
+
+```html
+<div *ngIf="lists|Empty">
+  <!-- 数组为空显示内容 -->
+</div>
+```
+
+---
+
+### Split 字符串分割为数组
+
+通过管道使用字符串分割为数组
+
+```
+{{ value_expression | Split: symbol }}
+```
+
+- value `string` 字符串
+- symbol `string` 分割符号
+- Return `string`
+
+假设存在一个字符串集合 `text`
+
+```typescript
+import { Component, OnInit } from "@angular/core";
+
+@Component({
+  selector: "app-welcome",
+  templateUrl: "./welcome.component.html",
+  styleUrls: ["./welcome.component.scss"],
+})
+export class WelcomeComponent implements OnInit {
+  text = "1|2|3|4|5|6";
+
+  ngOnInit(): void {}
+}
+```
+
+那么可以通过该管道进行字符串分割
+
+```html
+<ng-container *ngFor="let val of text|Split:'|'">
+  <p>{{val}}</p>
+</ng-container>
+```
+
+---
+
+### Join 数组拼接为字符串
+
+通过管道使用数组拼接为字符串
+
+```
+{{ value_expression | Join: symbol }}
+```
+
+- value `string[]` 字符串数组
+- symbol `string` 拼接符号
+- Return `string`
+
+假设存在一个字符串数组 `lists`
+
+```typescript
+import { Component, OnInit } from "@angular/core";
+
+@Component({
+  selector: "app-welcome",
+  templateUrl: "./welcome.component.html",
+  styleUrls: ["./welcome.component.scss"],
+})
+export class WelcomeComponent implements OnInit {
+  lists: string[] = ["nodejs", "php", "golang", "java", "python"];
+
+  ngOnInit(): void {}
+}
+```
+
+那么可以通过该管道进行字符串拼接
+
+```html
+<p>{{lists|Join:'+'}}</p>
+
+<!-- display nodejs+php+golang+java+python -->
+```
+
+---
+
+### object 转换对象
+
+通过管道转换对象，目标可以是 JSON 字符串或对象，也可作用语言包显示
+
+```
+{{ value_expression | object?: locale }}
+```
+
+- value `string | object` JSON 字符串或 JSON
+- locale `string` 语言包标识
+- Return `string`
+
+假设存在一个多语言 JSON 字符串 `lang`
+
+```typescript
+import { Component, OnInit } from "@angular/core";
+
+@Component({
+  selector: "app-welcome",
+  templateUrl: "./welcome.component.html",
+  styleUrls: ["./welcome.component.scss"],
+})
+export class WelcomeComponent implements OnInit {
+  lang = `{"zh_cn":"你好世界","en_us":"Hello World"}`;
+
+  ngOnInit(): void {}
+}
+```
+
+如果指定某个语言为默认的显示
+
+```html
+<p>{{lang|object:'zh_cn'}}</p>
+<!-- display 你好世界 -->
+<p>{{lang|object:'en_us'}}</p>
+<!-- display Hello World -->
+```
+
+当然如果 `lang` 为相同的 json 对象也可以输出相同的内容，在项目中的某个多语言字段，通常配置 `bit.locale` 实现输出控制
+
+```html
+<p>{{data.name|object:bit.locale}}</p>
+```
+
+`object` 也可以用于 JSON 显示，有时数据返回并不是那么友好，例如返回的字段中 JSON 为字符串
+
+```typescript
+import { Component, OnInit } from "@angular/core";
+
+@Component({
+  selector: "app-welcome",
+  templateUrl: "./welcome.component.html",
+  styleUrls: ["./welcome.component.scss"],
+})
+export class WelcomeComponent implements OnInit {
+  lists: any = [
+    { id: 1, extra: '{"ttl":3600,"on":true,"plus":20}' },
+    { id: 2, extra: '{"ttl":1800,"on":false,"plus":10}' },
+  ];
+
+  ngOnInit(): void {}
+}
+```
+
+在这种情况下可直接使用管道
+
+```html
+<ng-container *ngFor="let x of lists">
+  <p>{{(x.extra|object)['ttl']}}</p>
+</ng-container>
+```
+
+---
+
+### Print 字符串模板
+
+通过管道打印字符串模板，可适用于多语言模板
+
+```
+{{ value_expression | print: vars }}
+```
+
+- value `string` 字符串文本
+- vars `any[]` 变量，替换$0,$1,$2....$N
+- Return `string`
+
+假设存在一个语言包模板
+
+```typescript
+import { Component, OnInit } from "@angular/core";
+
+@Component({
+  selector: "app-welcome",
+  templateUrl: "./welcome.component.html",
+  styleUrls: ["./welcome.component.scss"],
+})
+export class WelcomeComponent implements OnInit {
+  lang = `$0 是遵循 $1 设计规范的 $2 组件库`;
+
+  ngOnInit(): void {}
+}
+```
+
+打印语言包
+
+```html
+<p>{{lang|print:['ng-zorro-antd', 'Ant Design', 'Angular UI']}}</p>
+<!-- display ng-zorro-antd 是遵循 Ant Design 设计规范的 Angular UI 组件库 -->
+```
+
+---
+
+### Privacy 字符串脱敏
+
+通过管道对字符串脱敏
+
+```
+{{ value_expression | Privacy: range }}
+```
+
+- value `string` 字符串
+- range `string` 切片范围
+- Return `string`
+
+假设存在一个待脱敏的字符串 `text`
+
+```typescript
+import { Component, OnInit } from "@angular/core";
+
+@Component({
+  selector: "app-welcome",
+  templateUrl: "./welcome.component.html",
+  styleUrls: ["./welcome.component.scss"],
+})
+export class WelcomeComponent implements OnInit {
+  text = "123456789";
+
+  ngOnInit(): void {}
+}
+```
+
+针对该字符串 3 到 6 的索引进行脱敏
+
+```html
+<p>{{text|Privacy:'3,6'}}</p>
+
+<!-- display 123***789 -->
+```
+
+---
+
+## 生产
+
+### Operates 操作库
+
+辅助框架还提供一些常用到的操作库
+
+#### 创建异步验证器
+
+- asyncValidator(handle: Observable<boolean>, field = 'duplicated', dueTime = 500): Observable<any>
+  - handle `Observable<boolean>` 返回验证结果
+  - field `string` 自定义返回
+  - dueTime `number` 防抖动延时，默认 `500` ms
+
+假设验证 key 字段是否唯一，`response` 是模拟请求的响应值，通常这样使用请求服务
+
+```typescript
+import { Component, OnInit } from "@angular/core";
+import { AbstractControl, FormBuilder, FormGroup } from "@angular/forms";
+import { asyncValidator } from "ngx-bit/operates";
+import { of } from "rxjs";
+
+@Component({
+  selector: "app-welcome",
+  templateUrl: "./welcome.component.html",
+  styleUrls: ["./welcome.component.scss"],
+})
+export class WelcomeComponent implements OnInit {
+  form: FormGroup;
+
+  constructor(private fb: FormBuilder) {}
+
+  ngOnInit(): void {
+    this.form = this.fb.group({
+      key: [null, [], [this.existsKey]],
+    });
+  }
+
+  existsKey = (control: AbstractControl) => {
+    const handle = of(true);
+    return asyncValidator(handle);
+  };
+}
+```
+
+#### 判断是否为空
+
+- empty(value: any): boolean
+  - value `any` 数值
+  - Return `boolean`
+
+```typescript
+empty(undefined);
+// true
+empty("");
+// true
+empty(0);
+// true
+empty(false);
+// true
+empty(null);
+// true
+empty([]);
+// true
+empty({});
+// true
+```
+
+#### 生产语言包工具
+
+- factoryLocales(dataset: object, mapping: Map< number, string >)
+  - dataset `object` 语言包数据源
+  - mapping `Map<number, string>` 语言包文件中的索引映射
+
+```typescript
+import("../common.language").then((result) => {
+  const lang = factoryLocales(result.default, environment.bit.locale.mapping);
+});
+```
+
+#### 返回 QuerySchema
+
+- getQuerySchema(options: SearchOption[]): any[]
+  - options `SearchOption[]` 条件数组
+
+通过 `SearchOption[]` 组合成 Laravel Query 的条件数组（ThinkPHP 同样支持）
+
+```typescript
+let schema = getQuerySchema([{ field: "username", op: "=", value: "" }]);
+
+// console: []
+
+schema = getQuerySchema([
+  { field: "username", op: "=", value: "", exclude: [0, null] },
+]);
+
+// console: ['username', '=', '']]
+
+schema = getQuerySchema([{ field: "username", op: "=", value: "kain" }]);
+
+// console: [['username', '=', 'kain']]
+
+schema = getQuerySchema([
+  { field: "username", op: "=", value: null },
+  { field: "type", op: "=", value: 0 },
+  { field: "ids", op: "in", value: [] },
+  { field: "error", op: "=", value: {} },
+]);
+
+// console: []
+```
+
+#### 字符串模板
+
+- print(str: string, ...vars: any): string
+  - str `string` 字符串文本
+  - vars `any[]` 变量，替换$0,$1,$2....$N
+
+可适用于多语言模板
+
+```typescript
+print(
+  "$0 是遵循 $1 设计规范的 $2 组件库",
+  "ng-zorro-antd",
+  "Ant Design",
+  "Angular UI"
+);
+
+// ng-zorro-antd 是遵循 Ant Design 设计规范的 Angular UI 组件库
+```
+
+#### 字符串脱敏
+
+- privacy(text: string, start: number, end: number): string
+  - text `string` 文本
+  - start `number` 起始索引
+  - end `number` 结束索引
+
+```typescript
+privacy("123456789", 3, 6);
+
+// 123***789
+```
+
+---
+
+### ListByPage 分页列表
+
+ListByPage 提供了分页列表结构所需的基本条件，创建通常需要 `BitService` 协助，例如：
+
+```typescript
+import { Component, OnInit } from "@angular/core";
+import { ListByPage } from "ngx-bit/factory";
+import { BitService } from "ngx-bit";
+
+@Component({
+  selector: "app-welcome",
+  templateUrl: "./welcome.component.html",
+  styleUrls: ["./welcome.component.scss"],
+})
+export class WelcomeComponent implements OnInit {
+  lists: ListByPage;
+
+  constructor(public bit: BitService) {}
+
+  ngOnInit(): void {
+    this.lists = this.bit.listByPage({
+      id: "test",
+      limit: 10,
+      query: [{ field: "username", op: "=", value: "" }],
+    });
+  }
+}
+```
+
+| 属性            | 说明                     | 类型                                | 默认值      |
+| --------------- | ------------------------ | ----------------------------------- | ----------- |
+| `search`        | 搜索字段定义             | `{ [field: string]: SearchOption }` | `{}`        |
+| `order`         | 排序字段定义             | `OrderOption`                       | `undefined` |
+| `data`          | 分页列表数据             | `any[]`                             | `[]`        |
+| `loading`       | 分页列表加载状态         | `boolean`                           | `true`      |
+| `limit`         | 分页记录数量             | `number`                            | `0`         |
+| `totals`        | 分页总数                 | `number`                            | `0`         |
+| `index`         | 分页页码                 | `number`                            | `1`         |
+| `checked`       | 分页列表是否全被选中     | `boolean`                           | `false`     |
+| `indeterminate` | 分页列表是否不完全被选中 | `boolean`                           | `false`     |
+| `batch`         | 是否可进行批量处理       | `boolean`                           | `false`     |
+| `checkedNumber` | 分页列表被选中的数量     | `number`                            | `0`         |
+
+#### 设置分页列表数据
+
+- setData(data: any[])
+  - data `any[]` 数据源
+
+当分页列表请求返回时设置，`getLists` 因酌情处理，这里 `event` 代表分页页码，可直接供 Table 组件使用
+
+```typescript
+getLists(refresh = false, event?:any) {
+    service.lists(
+        this.lists,
+        refresh,
+        event !== undefined
+    ).subscribe(data => {
+        this.lists.setData(data);
+    });
+}
+```
+
+#### 判断是否包含该字段的搜索条件
+
+- hasSearch(field: string)
+  - field `string` 字段名称
+
+通常这被使用在模板上
+
+```html
+<nz-space-item *ngIf="lists.hasSearch('username')">
+  <nz-input-group nzSearch [nzAddOnAfter]="nzAddOnAfter" style="width: 320px">
+    <input
+      nz-input
+      [bitSearchStart]="lists"
+      [placeholder]="bit.l['search']"
+      [(ngModel)]="lists.search['username'].value"
+      (after)="getLists(true)"
+    />
+  </nz-input-group>
+  <ng-template #nzAddOnAfter>
+    <button
+      nzSearch
+      nz-button
+      nzType="primary"
+      [bitSearchStart]="lists"
+      (after)="getLists(true)"
+    >
+      <i nz-icon nzType="search"></i>
+    </button>
+  </ng-template>
+</nz-space-item>
+```
+
+#### 主动触发搜索变动之后
+
+- afterSearch(): Observable< any >
+  - Return `Observable<any>`
+
+在不是 `bit-search-change` 与 `bit-search-start` 指令触发的情况下，就需要主动执行：
+
+```typescript
+this.lists.afterSearch().subscribe((status) => {
+  // ...
+});
+```
+
+#### 主动触发搜索清空之后
+
+- clearSearch(reset: any = {}): Observable< any >
+  - reset `any` 重置的数值
+  - Return `Observable<any>`
+
+在不是 `bit-search-clear` 指令触发的情况下，就需要主动执行：
+
+```typescript
+this.lists
+  .clearSearch({
+    username: "",
+  })
+  .subscribe((status) => {
+    // ...
+  });
+```
+
+#### 更新分页列表状态
+
+- refreshStatus()
+
+即是否全部选中、不完全选中、是否可执行批量与选中数量，通常列表数据中发生变化需主动执行
+
+```html
+<nz-table
+  #table
+  [nzData]="lists.data"
+  [nzLoading]="lists.loading"
+  [nzTotal]="lists.totals"
+  [nzPageSize]="lists.limit"
+  [nzFrontPagination]="false"
+  [(nzPageIndex)]="lists.index"
+  (nzPageIndexChange)="getLists()"
+  nzSize="middle"
+>
+  <thead>
+    <tr>
+      <th
+        nzShowCheckbox
+        nzWidth="65px"
+        [(nzChecked)]="lists.checked"
+        [nzIndeterminate]="lists.indeterminate"
+        (nzCheckedChange)="lists.checkedAll($event)"
+      ></th>
+      <th>{{bit.l['username']}}</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr *ngFor="let data of table.data">
+      <!-- 这里执行 -->
+      <td
+        nzShowCheckbox
+        [(nzChecked)]="data.checked"
+        (nzCheckedChange)="lists.refreshStatus()"
+      ></td>
+      <td>{{data.username}}</td>
+    </tr>
+  </tbody>
+</nz-table>
+```
+
+#### 更改所有分页列表选中状态
+
+- checkedAll(event: boolean)
+  - event `boolean` 选中状态
+
+可附加在主选择器的状态监听中
+
+```html
+<nz-table
+  #table
+  [nzData]="lists.data"
+  [nzLoading]="lists.loading"
+  [nzTotal]="lists.totals"
+  [nzPageSize]="lists.limit"
+  [nzFrontPagination]="false"
+  [(nzPageIndex)]="lists.index"
+  (nzPageIndexChange)="getLists()"
+  nzSize="middle"
+>
+  <thead>
+    <tr>
+      <!-- 这里执行 -->
+      <th
+        nzShowCheckbox
+        nzWidth="65px"
+        [(nzChecked)]="lists.checked"
+        [nzIndeterminate]="lists.indeterminate"
+        (nzCheckedChange)="lists.checkedAll($event)"
+      ></th>
+      <th>{{bit.l['username']}}</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr *ngFor="let data of table.data">
+      <td
+        nzShowCheckbox
+        [(nzChecked)]="data.checked"
+        (nzCheckedChange)="lists.refreshStatus()"
+      ></td>
+      <td>{{data.username}}</td>
+    </tr>
+  </tbody>
+</nz-table>
+```
+
+#### 返回所有被选中的列表
+
+- getChecked(): any[]
+  - Return `any[]`
+
+```typescript
+const checkedLists = this.lists.getChecked();
+```
+
+#### 获取当前的页码
+
+- getPage(): Observable<any>
+  - Return `Observable<any>`
+
+```typescript
+this.lists.getPage().subscribe((index) => {
+  // index
+});
+```
+
+#### 主动执行分页页码的持久化记录
+
+- persistence()
+
+```typescript
+this.lists.persistence();
+```
+
+#### 返回查询定义数组 
+
+- toQuery(): SearchOption[]
+
+```typescript
+const search = this.lists.toQuery();
+```
+
+#### 返回 QuerySchema
+
+- toQuerySchema(): any[]
+
+将 `search` 组合成 Laravel Query 的条件数组（ThinkPHP 同样支持）
+
+```typescript
+const schema = this.lists.toQuerySchema();
+
+// console: []
+```

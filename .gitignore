@@ -3,12 +3,3 @@ Thumbs.db
 db.json
 *.log
 /.idea
-node_modules/
-public/
-.deploy*/
-package-lock.json
-config.ini
-_config.icarus.yml
-_config.page.yml
-_config.post.yml
-_config.yml

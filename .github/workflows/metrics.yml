@@ -1,54 +1,54 @@
+# Visit https://github.com/lowlighter/metrics#-documentation for full reference
 name: Metrics
 on:
-  schedule:
-    - cron: "0 0 * * *"
+  # Schedule updates (each hour)
+  schedule: [{cron: "0 * * * *"}]
+  # Lines below let you run workflow manually and on each commit
   workflow_dispatch:
-  push:
-    branches: ["main"]
+  push: {branches: ["master", "main"]}
 jobs:
   github-metrics:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - uses: lowlighter/metrics@latest
         with:
-          filename: metrics.plugin.achievements.svg
+          # Your GitHub token
+          # The following scopes are required:
+          #  - public_access (default scope)
+          # The following additional scopes may be required:
+          #  - read:org      (for organization related metrics)
+          #  - read:user     (for user related data)
+          #  - read:packages (for some packages related data)
+          #  - repo          (optional, if you want to include private repositories)
           token: ${{ secrets.METRICS_TOKEN }}
-          base: ""
-          plugin_achievements: yes
-          plugin_achievements_only: polyglot, stargazer, deployer, member, maintainer, developer
-          plugin_achievements_display: compact
-          plugin_achievements_threshold: X
 
-      - uses: lowlighter/metrics@latest
-        with:
-          filename: metrics.plugin.followup.svg
-          token: ${{ secrets.METRICS_TOKEN }}
-          base: ""
-          plugin_followup: yes
-
-      - uses: lowlighter/metrics@latest
-        with:
-          filename: metrics.plugin.topics.icons.svg
-          token: NOT_NEEDED
-          base: ""
-          plugin_topics: yes
-          plugin_topics_limit: 0
-          plugin_topics_mode: icons
-
-      - uses: lowlighter/metrics@latest
-        with:
-          filename: metrics.plugin.wakatime.svg
-          token: ${{ secrets.METRICS_TOKEN }}
-          base: ""
-          plugin_wakatime: yes
-          plugin_wakatime_sections: time, languages-graphs
-          plugin_wakatime_days: 365
-          plugin_wakatime_token: ${{ secrets.WAKATIME_TOKEN }}
-
-      - uses: lowlighter/metrics@latest
-        with:
-          filename: metrics.plugin.isocalendar.fullyear.svg
-          token: ${{ secrets.METRICS_TOKEN }}
-          base: ""
+          # Options
+          user: kainonly
+          template: terminal
+          base: header, activity, community, repositories, metadata
+          config_timezone: Asia/Shanghai
+          plugin_activity: yes
+          plugin_activity_days: 14
+          plugin_activity_filter: all
+          plugin_activity_limit: 5
+          plugin_activity_load: 300
+          plugin_activity_visibility: all
           plugin_isocalendar: yes
           plugin_isocalendar_duration: full-year
+          plugin_languages: yes
+          plugin_languages_analysis_timeout: 15
+          plugin_languages_analysis_timeout_repositories: 7.5
+          plugin_languages_categories: markup, programming
+          plugin_languages_colors: github
+          plugin_languages_limit: 8
+          plugin_languages_recent_categories: markup, programming
+          plugin_languages_recent_days: 14
+          plugin_languages_recent_load: 300
+          plugin_languages_sections: most-used
+          plugin_languages_threshold: 0%
+          plugin_topics: yes
+          plugin_topics_limit: 15
+          plugin_topics_mode: icons
+          plugin_topics_sort: stars

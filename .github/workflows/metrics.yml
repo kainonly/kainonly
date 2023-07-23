@@ -26,7 +26,7 @@ jobs:
 
           # Options
           user: kainonly
-          template: terminal
+          template: classic
           base: header, activity, community, repositories, metadata
           config_timezone: Asia/Shanghai
           plugin_activity: yes

@@ -4,7 +4,7 @@ I’m a senior software engineer (Full Stack), engaged in the hotel industry, an
 
 ~ Love coding, hobby is still coding, exploring distributed, open source
 
-Currently focusing on cloud-native Kubernetes, the technology stack is mainly Angular, Golang, NoSQL, Nats
+Currently focusing on cloud-native Kubernetes, the technology stack is mainly Node, Golang, Angular, NoSQL, Nats
 
 Looking into the practical use of DevOps and LowCode, looking for a breakthrough
 

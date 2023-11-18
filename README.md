@@ -1,6 +1,6 @@
 # 👋 Hi, there. I’m Kain
 
-I’m a senior software engineer (Full Stack), engaged in the hotel industry, and an open source enthusiast.
+I’m a Full Stack & DevOps engineer, engaged in hotel internet in the China, and an open source enthusiast.
 
 ~ Love coding, hobby is still coding, exploring distributed, open source
 

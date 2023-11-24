@@ -2,9 +2,9 @@
 
 I’m a Full Stack & DevOps engineer, engaged in hotel internet in the China, and an open source enthusiast.
 
-~ Love coding, hobby is still coding, exploring distributed, open source
+~ Love coding, hobby is still coding, exploring distributed
 
-Currently focusing on cloud-native Kubernetes, the technology stack is mainly Go, Node, PHP, Angular
+Currently focusing on cloud-native Kubernetes, my expertise includes: Go, Node, PHP, Angular, MySQL, PostgreSQL, Redis, MongoDB, ElasticSearch, Nats
 
 Looking into the practical use of DevOps and LowCode
 

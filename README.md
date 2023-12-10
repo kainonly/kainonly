@@ -1,15 +1,15 @@
 # 👋 Hi, there. I’m Kain
 
-I’m a Full Stack & DevOps engineer, engaged in hotel internet in the China, and an open source enthusiast.
+I’m a Full Stack & DevOps engineer, and an open source enthusiast.
 
-~ Love coding, hobby is still coding, exploring distributed
+~ Love coding and keep learning
 
 Currently focusing on cloud-native Kubernetes, my expertise includes: 
 
-Go, Node, PHP, Angular, MySQL, PostgreSQL, Redis, MongoDB, ElasticSearch, Nats
+Go, Node, PHP, Angular, React, MySQL, PostgreSQL, Redis, MongoDB, ElasticSearch, Nats
 
-Looking into the practical use of DevOps and LowCode
+Practical applications are being explored
 
-[Weplanx](https://github.com/weplanx) an open source project I am working on 
+[Weplanx](https://github.com/weplanx) is an open source project that explores the combination of DevOps and LowCode.
 
 ![github-metrics.svg](github-metrics.svg)

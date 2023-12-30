@@ -4,9 +4,7 @@ I’m a Full Stack & DevOps engineer, and an open source enthusiast.
 
 ~ Love coding and keep learning
 
-Currently focusing on cloud-native Kubernetes, my expertise includes: 
-
-Go, Node, PHP, Angular, React, MySQL, PostgreSQL, Redis, MongoDB, ElasticSearch, Nats
+Currently focusing on cloud-native Kubernetes
 
 Practical applications are being explored
 

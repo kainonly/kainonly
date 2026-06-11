@@ -1,4 +1,6 @@
-# 👋 Kain
+# 👋 Hi, I'm Kain
+
+🌏 Building systems for the real world.
 
 ```bash
 $ whoami

@@ -1,19 +1,46 @@
-# 👋 Hi, there. I’m Kain
+# 👋 Hi, I'm Kain
 
-Senior full-stack engineer & architect with 9+ years in designing & building vertical transaction systems—specializing in hotel mall systems, flower trading platforms.
+**Architect · Full-stack Engineer · Product Builder**
 
-🧮 Focus & Expertise Areas
+Building enterprise systems across hospitality, e-commerce, supply chain, and transaction platforms for 10+ years.
 
-✔ Built scalable systems (hotel malls, flower trading) with Golang/PHP; designed high-performance data layers (Redis/PostgreSQL/MongoDB) for transaction scenarios.
+Currently exploring how AI can improve operational efficiency through automation, analytics, and intelligent workflows.
 
-✔ Proficient in Angular/React for frontend; designed & implemented RESTful APIs, microservices, and message queue architectures for high-traffic systems.
+---
 
-✔ Streamlined DevOps workflows with Docker, Kubernetes, GitHub Actions; managed multi-cloud deployments (AWS, Vercel, Alibaba Cloud, Tencent Cloud).
+## 🚀 Areas of Focus
 
-🧰 Architect @ Vane: Led 100+ project architectures and spearheaded a hotel group's technical infrastructure—supporting 10,000+ orders, 100,000+ members, and ¥15M ($2M) in annual online bookings over 3 years.
+- 🏢 Enterprise Platforms
+- ☁️ Cloud Native Architecture
+- 🤖 AI Agent Applications
+- 📊 Data Analytics
+- ⚙️ Workflow Automation
+- 🧩 Management Systems
 
-🧰 Architect @ Brighten: Redesigned the transaction system with **cloud-native architecture** (built on Hertz framework for high-performance API services) + **horizontal scaling** (Kubernetes orchestration + auto-scaling groups), then led its relaunch—delivering 40x performance improvement vs. the original.
+---
 
-😊 Let's build something impactful—feel free to DM me to discuss your project, or check out my repos below!
+## 🛠️ Tech Stack
 
-![github-metrics.svg](github-metrics.svg)
+![Go](https://img.shields.io/badge/Go-00ADD8?logo=go&logoColor=white)
+![Angular](https://img.shields.io/badge/Angular-DD0031?logo=angular&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-4169E1?logo=postgresql&logoColor=white)
+![Redis](https://img.shields.io/badge/Redis-DC382D?logo=redis&logoColor=white)
+![NATS](https://img.shields.io/badge/NATS-27AAE1)
+![ClickHouse](https://img.shields.io/badge/ClickHouse-FFCC01)
+![Docker](https://img.shields.io/badge/Docker-2496ED?logo=docker&logoColor=white)
+![Kubernetes](https://img.shields.io/badge/Kubernetes-326CE5?logo=kubernetes&logoColor=white)
+
+---
+
+## 🔭 Current Focus
+
+- 🤖 AI-powered Business Applications
+- 📈 Operational Analytics & Observability
+- ⚡ Intelligent Workflow Automation
+- 🏗️ Scalable Enterprise Architecture
+
+---
+
+## 💡 Interests
+
+AI Agents · Enterprise Software · Product Design · Cloud Native · System Architecture
